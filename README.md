@@ -21,7 +21,7 @@ users achieve financial goals with smart budgeting.
  ## Dataset
 
 
- # Authors
+# Authors
 Jessica Babos
 
 Andrew Hua
