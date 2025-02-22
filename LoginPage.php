@@ -12,20 +12,21 @@
 </head>
 <body>
   <header>
-	<h1> <img src="images\SmartSpendLogo.png"
-	      alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
+  <h1> <img src="images\SmartSpendLogo.png"
+        alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
   </header>
+  <?php include "validate_login.php";?>
  <div class="log">
   <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
     <label for="email">Email:&emsp;&emsp;</label>
-	<input type="text" id="email" name="email" placeholder="johndoe01@hotmail.com">
-	<span style="color:red;">*<?php echo $emailError?>*</span>
+  <input type="text" id="email" name="email" placeholder="johndoe01@hotmail.com">
+  <span style="color:red;"><?php echo $emailError?></span>
          <br>
     <label for="password" style="text-align:center">Password:&nbsp;&nbsp;</label>
-	<input type="password" id="password" name="password" placeholder="@FooBar5115">
-	<br>
-	<button type="button" style="background:none; border:none; margin-left:162px">Forgot password?</button>
-	 <br>
+  <input type="password" id="password" name="password" placeholder="@FooBar5115">
+  <br>
+  <button type="button" style="background:none; border:none; margin-left:162px">Forgot password?</button>
+   <br>
         <input type="submit" id="signInBtn" name="login" value="Sign In" style="margin-top:100px">
  </form>
 </div>
