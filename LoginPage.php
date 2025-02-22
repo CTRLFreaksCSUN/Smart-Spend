@@ -12,7 +12,7 @@
 </head>
 <body>
   <header>
-	<h1> <img src="C:\Users\Owner\OneDrive\Pictures\SmartSpendLogo.png"
+	<h1> <img src="images\SmartSpendLogo.png"
 	      alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
   </header>
  <div class="log">
