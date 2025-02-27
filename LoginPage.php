@@ -15,15 +15,20 @@
   <h1> <img src="images\SmartSpendLogo.png"
         alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
   </header>
-  <?php include "validate_login.php";?>
+
+  <?php 
+  $path = __DIR__;
+  include $path . '\validate_login.php'?>
+
  <div class="log">
-  <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+  <form method="POST">
     <label for="email">Email:&emsp;&emsp;</label>
   <input type="text" id="email" name="email" placeholder="johndoe01@hotmail.com">
-  <span style="color:red;"><?php echo $emailError?></span>
+  <span class="error"><?php echo $emailError?></span>
          <br>
     <label for="password" style="text-align:center">Password:&nbsp;&nbsp;</label>
   <input type="password" id="password" name="password" placeholder="@FooBar5115">
+  <span class="error"><?php echo $passwordError?></span>
   <br>
   <button type="button" style="background:none; border:none; margin-left:162px">Forgot password?</button>
    <br>
