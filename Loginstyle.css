@@ -67,6 +67,10 @@ input[type="password"] {
 	width: 200px;
 }
 
+span.error {
+   color: red;
+}
+
 
 footer {
 	background-color: rgb(0, 0, 60);
