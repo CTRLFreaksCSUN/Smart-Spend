@@ -2,7 +2,12 @@ body {
 	font-family: sans-seriff;
 	font-size: 120%;
 	margin: 0;
+	background-image: url("https://i.pinimg.com/736x/51/94/2d/51942d5b5ec7245f9bd620a8603309d2.jpg");
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
 }
+
 
 header {
 	background-color: rgb(10, 40, 70);
@@ -15,29 +20,52 @@ h1 {
 	font-size: 300%;
 }
 
+h2 {
+	margin:16px;
+	font-size:200%;
+}
+
 button:hover {
 	cursor: pointer;
 }
 
 
+span.error {
+	color:rgb(255, 0, 0);
+	font-size:90%;
+}
+
+
 div.register {
-	
-	border-radius: 5px;
-	background-color: rgb(10, 40, 70);
+	border-style: solid;
+	border-radius: 15px;
+	border-color:rgb(0,0,0,0);
+	background-color: rgb(1, 5, 63);
+	color: white;
+	float: center;
+	height: 680px;
+	width: 500px;
+	text-align: center;
+	margin:auto;
 }
 
 input[type="submit"] {
 	float:center;
         padding:5px; 
-        width:120px; 
+        width:220px; 
+        height:50px;
         border-radius:50px; 
-        font-size: 100%;
+        border-style:none;
+        font-size: 120%;
+        margin: 20px;
  	cursor: pointer;
+    background-color: rgb(0, 90, 250); 
+    color: white;
 }
 
 input[type="text"] {
 	float:center;
-	margin-top: 260px;
+	margin-top: 20px;
 	padding: 5px;
 	width: 200px;
 }
@@ -45,7 +73,7 @@ input[type="text"] {
 
 input[type="password"] {
 	float:center;
-	margin-top: 5px;
+	margin-top: 20px;
 	padding: 5px;
 	width: 200px;
 }
