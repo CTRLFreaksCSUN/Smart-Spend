@@ -35,7 +35,7 @@
         <input type="submit" id="signInBtn" name="login" value="Sign In" style="margin-top:100px">
  </form>
 </div>
-<form action="register.php" target="_self">
+<form action="RegisterPage.php" target="_self">
  <div class="register">
     <p style="font-size:30px; color: rgb(0, 120, 220); margin-top:120px">Your money, your future&mdash;
     <br>spend smarter and save more with<br>AI-powered insights. Get started today!</p><br>
