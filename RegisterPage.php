@@ -18,12 +18,12 @@
 
   <?php 
   $path = __DIR__; 
-  include $path . '\validate_login.php';?>
+  include $path . '\validate_register.php';?>
 
  <div class="register">
      <form method="POST"> 
   <h2>Sign Up</h2>
-  <span class="error"><?php echo $emailError?></span>
+  <span class="error"><?php echo $errorMsg?></span>
     <br>
    <br>
   <label for="firstname" style="padding-right:18px;">Enter your First Name: </label>
