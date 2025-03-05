@@ -21,9 +21,9 @@
   include $path . '\validate_login.php'?>
 
  <div class="log">
+  <h2>Sign In</h2>
   <form method="POST">
-    <span class="error"><?php echo $emailError?></span><br>
-    <span class="error"><?php echo $passwordError?></span><br>
+    <span class="error"><?php echo $errorMsg?></span><br>
     <label for="email">Email:&emsp;&emsp;</label>
   <input type="text" id="email" name="email" placeholder="johndoe01@hotmail.com">
          <br>
