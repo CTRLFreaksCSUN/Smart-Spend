@@ -3,6 +3,7 @@ body {
 	font-size: 120%;
 	margin: 0;
 	background-color: rgb(0, 160, 220);
+	overflow: hidden;
 }
 
 header {
@@ -16,78 +17,74 @@ h1 {
 	font-size: 300%;
 }
 
-.container {
-	display: flex; /* Enables flexbox */
-	width: 100vw; /* Full width */
-	height: 85vh; /* Adjust height */
+h2 {
+	margin:0;
+	font-size:220%;
 }
 
-/* Left Side - Login Section */
 div.log {
 	border-style: solid;
 	border-color: rgb(0, 0, 100);
 	border-width: 10px;
+	padding: 15em;
 	background-color: rgb(0, 160, 220);
-	width: 50%; /* Ensures 2 equal sections */
-	height: 100%;
+	width: 40%;
+	height: 315px;
 	text-align: center;
-	display: flex;
-	flex-direction: column;
-	justify-content: center; /* Center content */
-	align-items: center;
+	float: left;
 }
 
-/* Right Side - Register Section */
 div.register {
 	border-style: solid;
 	border-color: rgb(0, 0, 100);
-	border-width: 10px;
-	width: 50%; /* Ensures equal width */
-	height: 100%;
+   border-width: 10px;
+	padding: 4.4em;
 	text-align: center;
+	height: 660px;
 	background-image: url(https://img.freepik.com/premium-vector/abstract-water-background-wave-illustration-art-concept_114588-20.jpg);
-	background-size: cover; /* Ensure background fits */
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	color: rgb(0, 50, 100);
+	background-size: 60%;
 }
 
-/* Button Hover */
+
 button:hover {
 	cursor: pointer;
 }
 
-/* Centering Input Buttons */
 input[type="submit"] {
-	padding: 10px; 
-	width: 140px; 
-	border-radius: 50px; 
-	border-style: none;
-	font-size: 100%;
-	cursor: pointer;
+	float:center;
+        padding:10px; 
+        width:140px; 
+        border-radius:50px; 
+        border-style: none;
+        font-size: 100%;
+ 	cursor: pointer;
 }
 
-/* Centering Inputs */
-input[type="text"],
-input[type="password"] {
-	margin-top: 10px;
+input[type="text"] {
+	float:center;
+	margin-top: 20px;
 	padding: 5px;
 	width: 200px;
-	text-align: center;
+}
+
+
+input[type="password"] {
+	float:center;
+	margin-top: 5px;
+	padding: 5px;
+	width: 200px;
 }
 
 span.error {
-	color: red;
+   color: red;
 }
 
-/* Footer */
+
 footer {
 	background-color: rgb(0, 0, 60);
 	position: fixed;
 	bottom: 0;
-	color: white;
+	color: rgb(255, 255, 255);
 	padding: 20px;
 	text-align: center;
 	width: 100%;
