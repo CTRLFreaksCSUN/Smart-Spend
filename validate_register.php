@@ -56,7 +56,7 @@ catch(ResourceNotFoundException $rerr) {
 function checkEmptyCreds($errMsg) {
    //Read each field from POST request
    //If field is empty, return error message
-   if ($_SERVER["REQUEST_METHOD"] == "POST") {
+   if ($_SERVER["REQUEST_METHOD"] == "POST") { //
       if (empty($_POST["email"])) {
          $errMsg = "*Please enter your email.*";
       }
