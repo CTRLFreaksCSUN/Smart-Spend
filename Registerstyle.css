@@ -1,11 +1,12 @@
-body {
-	font-family: sans-seriff;
-	font-size: 120%;
-	margin: 0;
-	background-image: url("https://i.pinimg.com/736x/51/94/2d/51942d5b5ec7245f9bd620a8603309d2.jpg");
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: center;
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-seriff;
+    background-image: url("https://i.pinimg.com/736x/51/94/2d/51942d5b5ec7245f9bd620a8603309d2.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
 }
 
 
@@ -46,7 +47,7 @@ div.register {
 	height: 680px;
 	width: 500px;
 	text-align: center;
-	margin:auto;
+	margin: auto;
 }
 
 input[type="submit"] {

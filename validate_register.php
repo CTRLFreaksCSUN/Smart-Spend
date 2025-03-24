@@ -15,14 +15,19 @@ $env->load();
 $email = $password = "";
 $errorMsg = "";
 $db = null;
+$validated = checkEmptyCreds($email, $password, $errorMsg);
 
 //Access stored secrets to retrieve EC2 instance credentials
 $key = $_ENV["KEY"];
 $endPt = $_ENV["ENDPOINT"];
 $region =  $_ENV["REGION"];
 
-//Check for empty fields
-$errorMsg = checkEmptyCreds($errorMsg);
+if ($validated && empty($errorMsg)) {
+   // TODO: Save email and password into DynamoDB
+
+   header("Location: ContinuedRegPage.php");
+   exit(); 
+}
 
 //Connect to EC2 instance for managing DynamoDB 
 try {
@@ -53,28 +58,24 @@ catch(ResourceNotFoundException $rerr) {
 
 
 
-function checkEmptyCreds($errMsg) {
-   //Read each field from POST request
-   //If field is empty, return error message
-   if ($_SERVER["REQUEST_METHOD"] == "POST") { //
+function checkEmptyCreds(&$email, &$password, &$errMsg) {
+   if ($_SERVER["REQUEST_METHOD"] == "POST") {
       if (empty($_POST["email"])) {
          $errMsg = "*Please enter your email.*";
+         return false;
       }
 
-      else {
-            //Remove unnecessary characters and whitespace from email
-            $email = scan_input($_POST["email"]);
-            if (empty($_POST["password"])) {
-               $errMsg = "*Please enter your password.*";
-            }
+      $email = scan_input($_POST["email"]);
 
-            else {
-               //Remove unnecessary characters and whitespace from password
-               $password = scan_input($_POST["password"]);
-            }
+      if (empty($_POST["password"])) {
+         $errMsg = "*Please enter your password.*";
+         return false;
       }
+
+      $password = scan_input($_POST["password"]);
+      return true;
    }
-   return $errMsg;
+   return false;
 }
 
 function scan_input($input) {
@@ -179,4 +180,4 @@ finally {
    return $collec;
 }
 }
-?>
+

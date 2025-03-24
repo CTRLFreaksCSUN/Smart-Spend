@@ -23,21 +23,21 @@
  <div class="register">
      <form method="POST"> 
   <h2>Sign Up</h2>
-  <span class="error"><?php echo $errorMsg?></span>
+  <span class="error"><?php echo $errorMsg ?></span>
     <br>
    <br>
   <label for="firstname" style="padding-right:18px;">Enter your First Name: </label>
-      <input type="text" id="firstname" name="firstname" placeholder="John"> <br>
+      <input type="text" id="firstname" name="firstname" placeholder="John" required> <br>
   <label for="middlename" style="padding-right:0px;">Enter your Middle Name: </label>
       <input type="text" id="middlename" name="middlename" placeholder="[ Optional ]"> <br>
   <label for="lastname" style="padding-right:20px;">Enter your Last Name: </label>
-      <input type="text" id="lastname" name="lastname" placeholder="Doe"> <br>
+      <input type="text" id="lastname" name="lastname" placeholder="Doe" required> <br>
         <label for="email" style="padding-right:60px;">Enter your Email: </label>
-     <input type="text" id="email" name="email" placeholder="newuser123@gmail.com"> <br>
+     <input type="text" id="email" name="email" placeholder="newuser123@gmail.com" required> <br>
   <label for="password" style="padding-right:34px;">Enter new Password: </label>
-     <input type="password" id="password" name="password" placeholder="$Password1234"> <br>
+     <input type="password" id="password" name="password" placeholder="$Password1234" required> <br>
   <label for="password" style="padding-right:9px;">Re-enter new Password: </label>
-     <input type="password" id="re-password" name="re-password" placeholder="$Password1234"> <br>
+     <input type="password" id="re-password" name="re-password" placeholder="$Password1234" required> <br>
     <br>
   <br>
      <input type="submit" id="register" name="register" value="Sign Up">
