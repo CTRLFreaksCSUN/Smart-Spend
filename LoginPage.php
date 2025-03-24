@@ -12,13 +12,13 @@
 </head>
 <body>
   <header>
-  <h1> <img src="images\SmartSpendLogo.png"
+  <h1> <img src="images/SmartSpendLogo.png"
         alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
   </header>
 
   <?php 
   $path = __DIR__;
-  include $path . '\validate_login.php'?>
+  include $path . '/validate_login.php'?>
 
  <div class="log">
   <h2>Sign In</h2>

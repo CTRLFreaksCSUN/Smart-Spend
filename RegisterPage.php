@@ -11,14 +11,14 @@
 </head>
 <body>
   <header>
-  <h1> <img src="images\SmartSpendLogo.png"
+  <h1> <img src="images/SmartSpendLogo.png"
         alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
   </header>
   <br>
 
   <?php 
   $path = __DIR__; 
-  include $path . '\validate_register.php';?>
+  include $path . '/validate_register.php';?>
 
  <div class="register">
      <form method="POST"> 
