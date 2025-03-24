@@ -32,7 +32,7 @@
       <input type="text" id="middlename" name="middlename" placeholder="[ Optional ]"> <br>
   <label for="lastname" style="padding-right:20px;">Enter your Last Name: </label>
       <input type="text" id="lastname" name="lastname" placeholder="Doe"> <br>
-        <label for="email" style="padding-right:60px;">Enter new Email: </label>
+        <label for="email" style="padding-right:60px;">Enter your Email: </label>
      <input type="text" id="email" name="email" placeholder="newuser123@gmail.com"> <br>
   <label for="password" style="padding-right:34px;">Enter new Password: </label>
      <input type="password" id="password" name="password" placeholder="$Password1234"> <br>
