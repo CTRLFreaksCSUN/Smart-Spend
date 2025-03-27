@@ -21,6 +21,7 @@ $validated = checkEmptyCreds($email, $password, $errorMsg);
 $key = $_ENV["KEY"];
 $endPt = $_ENV["ENDPOINT"];
 $region =  $_ENV["REGION"];
+$secret = $_ENV["SECRET"];
 
 if ($validated && empty($errorMsg)) {
    // TODO: Save email and password into DynamoDB
@@ -31,13 +32,16 @@ if ($validated && empty($errorMsg)) {
 
 //Connect to EC2 instance for managing DynamoDB 
 try {
-   $dbClient = DynamoDbClient::factory([
-      'priv_key' => $key,
-      'endpoint' => $endPt,
-      'region' => $region
-   ]);
+   $dbClient = DynamoDbClient::factory(array(
+      'credentials' => array(
+         'key' => $key,
+         'secret' => $secret
+         ),
+      'region' => $region,
+      'version' => 'latest'
+   ));
    //Create collection (if does not exist)
-   $db = createCollection();
+   $db = createCollection($dbClient);
 }
 
 catch(UnrecognizedClientException $ucerr) {
@@ -86,14 +90,14 @@ function scan_input($input) {
 }
 
 
-function createCollection() {
+function createCollection($dbClient) {
    //Create table for user data
-   $tablename = "User";
+   $tablename = "Customer";
    $collec = null;
 
    //Check if table is already instantiated
    try {
-   $collec = dbClient->createTable([
+   $collec = $dbClient->createTable([
       'AttributeDefinitions' => [
       [
          'AttributeName' => 'Fname',
@@ -118,31 +122,36 @@ function createCollection() {
       [
          'AttributeName' => 'address',
          'AttributeType' => 'S'
-      ],
-      [
-         'AttributeName' => 'docs',
-         'AttributeType' => 'BS'
-      ],
-      [
-         'AttributeName' => 'u_id',
-         'AttributeType' => 'N'
       ]
       ],
-   'BillingMode' => 'PAY_PER_REQUEST',
-   'DeletionProtectionEnabled' => true,
+   'BillingMode' => 'PROVISIONED',
+   'DeletionProtectionEnabled' => false,
    'KeySchema' => [
       [
-         'AttributeName' => 'u_id',
+         'AttributeName' => 'c_id',
          'KeyType' => 'HASH'
+      ],
+      [
+         'AttributeName' => 'f_id',
+         'KeyType' => 'RANGE'
       ]
    ],
-   'OnDemandThroughput' => [
-      'MaxReadRequestUnits' => 25,
-      'MaxWriteRequestUnits' => 25
+   'AttributeDefinitions' => [
+      [
+         'AttributeName' => 'c_id',
+         'AttributeType' => 'N'
+      ], 
+      [
+         'AttributeName' => 'f_id',
+         'AttributeType' => 'N'
+      ]
+   ],
+   'ProvisionedThroughput' => [
+      'ReadCapacityUnits' => 1,
+      'WriteCapacityUnits' => 1
    ],
    'SSESpecification' => [
-      'Enabled' => false,
-      'SSEType' => 'AES256'
+      'Enabled' => false
    ],
    'StreamSpecification' => [
       'StreamEnabled' => true,
@@ -172,8 +181,12 @@ function createCollection() {
    );
 }
 
-catch (ResourceInUseException $e) {
+catch (ResourceInUseException $re) {
    error_log("Table already exists!\n", 0);
+}
+
+catch (DynamoDbException $de) {
+   echo $de->getMessage();
 }
 
 finally {
