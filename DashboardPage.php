@@ -1,9 +1,27 @@
 <?php
-// DashboardPage.php
-// Dummy data for the Spending Trends chart
+// Dummy data for charts
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-$data = [200, 300, 250, 400, 350, 450];
+$spendingData = [200, 300, 250, 400, 350, 450];
+
+// Budget vs Actual Spending
+$budgetData = [500, 550, 580, 620, 600, 650];
+$actualData = [480, 530, 560, 610, 590, 640];
+
+// Income vs Spending
+$incomeData = [700, 720, 750, 780, 760, 800];
+$expenseData = [500, 540, 580, 600, 590, 620];
+
+// Top Spending Categories (Pie Chart)
+$categoryLabels = ['Rent', 'Groceries', 'Shopping', 'Transport', 'Entertainment'];
+$categoryData = [40, 25, 15, 10, 10];
+
+// Savings Progress (Bar Chart)
+$savingsData = [150, 180, 200, 220, 250, 300];
+
+// Predicted Spending (Line Chart)
+$predictedData = [300, 350, 400, 450, 500, 550];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,34 +52,48 @@ $data = [200, 300, 250, 400, 350, 450];
     </div>
 </header>
 
+<!-- Background wave image -->
+<div class="background"></div>
+
 <!-- Graph cards -->
 <main class="card-grid">
+
+    <!-- Spending Trends -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Spending Trends</p>
+        <h2>Spending Trends</h2>
         <canvas id="spendingChart"></canvas>
     </div>
 
+    <!-- Budget vs Actual Spending -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Budget vs actual spending</p>
+        <h2>Budget vs Actual Spending</h2>
+        <canvas id="budgetChart"></canvas>
     </div>
+
+    <!-- Income vs Spending -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Income vs spending</p>
+        <h2>Income vs Spending</h2>
+        <canvas id="incomeChart"></canvas>
     </div>
+
+    <!-- Top Spending Categories -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Top Spending categories</p>
+        <h2>Top Spending Categories</h2>
+        <canvas id="categoryChart"></canvas>
     </div>
+
+    <!-- Savings Progress -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Savings Progress</p>
+        <h2>Savings Progress</h2>
+        <canvas id="savingsChart"></canvas>
     </div>
+
+    <!-- Predicted Spending -->
     <div class="card">
-        <h2>Graphs</h2>
-        <p>Predicted Spending</p>
+        <h2>Predicted Spending</h2>
+        <canvas id="predictedChart"></canvas>
     </div>
+
 </main>
 
 <!-- Floating Chat Bubble & Popup Container -->
@@ -89,7 +121,7 @@ $data = [200, 300, 250, 400, 350, 450];
             labels: <?php echo json_encode($labels); ?>,
             datasets: [{
                 label: 'Spending ($)',
-                data: <?php echo json_encode($data); ?>,
+                data: <?php echo json_encode($spendingData); ?>,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 2,
@@ -103,6 +135,97 @@ $data = [200, 300, 250, 400, 350, 450];
                 y: { beginAtZero: true }
             }
         }
+    });
+
+    // Budget vs Actual Spending - Bar Chart
+    new Chart(document.getElementById('budgetChart'), {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($labels); ?>,
+            datasets: [
+                {
+                    label: 'Budget ($)',
+                    data: <?php echo json_encode($budgetData); ?>,
+                    backgroundColor: '#4caf50'
+                },
+                {
+                    label: 'Actual ($)',
+                    data: <?php echo json_encode($actualData); ?>,
+                    backgroundColor: '#ff9800'
+                }
+            ]
+        },
+        options: { responsive: true }
+    });
+
+    // Income vs Spending - Line Chart
+    new Chart(document.getElementById('incomeChart'), {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($labels); ?>,
+            datasets: [
+                {
+                    label: 'Income ($)',
+                    data: <?php echo json_encode($incomeData); ?>,
+                    borderColor: '#4caf50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Spending ($)',
+                    data: <?php echo json_encode($expenseData); ?>,
+                    borderColor: '#f44336',
+                    backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: { responsive: true }
+    });
+
+    // Top Spending Categories - Pie Chart
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+            labels: <?php echo json_encode($categoryLabels); ?>,
+            datasets: [{
+                label: 'Categories',
+                data: <?php echo json_encode($categoryData); ?>,
+                backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4caf50', '#ff9800']
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Savings Progress - Bar Chart
+    new Chart(document.getElementById('savingsChart'), {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($labels); ?>,
+            datasets: [{
+                label: 'Savings ($)',
+                data: <?php echo json_encode($savingsData); ?>,
+                backgroundColor: '#3f51b5'
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Predicted Spending - Line Chart
+    new Chart(document.getElementById('predictedChart'), {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($labels); ?>,
+            datasets: [{
+                label: 'Predicted Spending ($)',
+                data: <?php echo json_encode($predictedData); ?>,
+                borderColor: '#ff6384',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderWidth: 2,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true }
     });
 </script>
 
