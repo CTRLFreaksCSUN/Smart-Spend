@@ -181,12 +181,8 @@ function createCollection($dbClient) {
    );
 }
 
-catch (ResourceInUseException $re) {
-   error_log("Table already exists!\n", 0);
-}
-
 catch (DynamoDbException $de) {
-   echo $de->getMessage();
+   error_log($de->getMessage(), 0);
 }
 
 finally {
