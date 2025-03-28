@@ -1,5 +1,4 @@
 <?php
-
 //composer require orhanerday/open-ai       -- to install it 
 
 // To Disable SSL verification
@@ -10,318 +9,378 @@
 // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 
-
-
-
+// Enable error reporting for debugging
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-require __DIR__ . '/vendor/autoload.php';
 
-// Load environment variables from .env
+require __DIR__ . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 use Orhanerday\OpenAi\OpenAi;
 
-$open_ai_key = $_ENV['OPENAI_API_KEY'] ?? null;
-if (!$open_ai_key) {
-    die("OpenAI API key not found. Please set OPENAI_API_KEY in .env.");
-}
-
-// Create an instance of the OpenAi client
+$open_ai_key = $_ENV['OPENAI_API_KEY'] ?? die("OpenAI API key not configured in .env");
 $open_ai = new OpenAi($open_ai_key);
 
-// Variable to hold the AI response
 $aiResponse = "";
+$debugInfo = "";
 
-// Process the form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userMessage = trim($_POST['userMessage'] ?? '');
-    
-    if (!empty($userMessage)) {
-        // Make a request to ChatGPT
-        $chat = $open_ai->chat([
-            'model' => 'gpt-3.5-turbo',
-            'messages' => [
-                [
-                    'role'    => 'system',
-                    'content' => 'You are a helpful financial assistant. Provide concise and clear advice.'
-                ],
-                [
-                    'role'    => 'user',
-                    'content' => $userMessage
-                ]
-            ],
-        ]);
+/**
+ * Validates image file and returns MIME type
+ */
+function validateImageFile($filePath) {
+    if (!file_exists($filePath)) {
+        throw new Exception("File doesn't exist or cannot be accessed");
+    }
+
+    // Method 1: Try finfo first (most reliable)
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $filePath);
+        finfo_close($finfo);
         
-        // Log the raw response for debugging
-        error_log("ChatGPT raw response: " . $chat);
-        
-        // Convert JSON response to array
-        $responseArr = json_decode($chat, true);
-        
-        if (isset($responseArr['error'])) {
-            $aiResponse = "API Error: " . $responseArr['error']['message'];
-        } elseif (isset($responseArr['choices'][0]['message']['content'])) {
-            $aiResponse = $responseArr['choices'][0]['message']['content'];
-        } else {
-            $aiResponse = "No response from ChatGPT. Check logs or API usage.";
+        if (in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+            return $mime;
         }
+    }
+
+    // Method 2: Try getimagesize
+    $imageInfo = @getimagesize($filePath);
+    if ($imageInfo !== false) {
+        $mime = $imageInfo['mime'] ?? '';
+        if (in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+            return $mime;
+        }
+    }
+
+    // Method 3: Check file signature (magic numbers)
+    $fileHandle = fopen($filePath, 'rb');
+    if ($fileHandle) {
+        $firstBytes = fread($fileHandle, 8);
+        fclose($fileHandle);
+        
+        if (strpos($firstBytes, "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A") === 0) return 'image/png';
+        if (strpos($firstBytes, "\xFF\xD8\xFF") === 0) return 'image/jpeg';
+        if (strpos($firstBytes, "GIF") === 0) return 'image/gif';
+        if (strpos($firstBytes, "RIFF") === 0) return 'image/webp';
+    }
+
+    throw new Exception("Unsupported file type. Please upload a valid JPEG, PNG, GIF, or WebP image.");
+}
+
+/**
+ * Prepares image data for API upload
+ */
+function prepareImageData($filePath) {
+    $mime = validateImageFile($filePath);
+    $imageData = base64_encode(file_get_contents($filePath));
+    return [
+        'mime' => $mime,
+        'data' => $imageData
+    ];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // Handle receipt upload
+        if (isset($_FILES['receipt']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
+            $tempPath = $_FILES['receipt']['tmp_name'];
+            $imageInfo = prepareImageData($tempPath);
+            
+            // Call OpenAI Vision API with GPT-4o
+            $response = $open_ai->chat([
+                'model' => 'gpt-4o',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => [
+                            ['type' => 'text', 'text' => "Extract merchant, total, date, and items from this receipt. Format as markdown table with columns: Item | Price | Category. Include currency symbols."],
+                            ['type' => 'image_url', 'image_url' => [
+                                "url" => "data:{$imageInfo['mime']};base64,{$imageInfo['data']}"
+                            ]]
+                        ]
+                    ]
+                ],
+                'max_tokens' => 1000
+            ]);
+            
+            $result = json_decode($response, true);
+            $aiResponse = $result['choices'][0]['message']['content'] ?? "⚠️ Failed to analyze receipt";
+            
+        } 
+        // Handle text message
+        elseif (!empty($_POST['userMessage'])) {
+            $response = $open_ai->chat([
+                'model' => 'gpt-4o',
+                'messages' => [
+                    ['role' => 'system', 'content' => 'You are a helpful financial assistant.'],
+                    ['role' => 'user', 'content' => $_POST['userMessage']]
+                ]
+            ]);
+            $aiResponse = json_decode($response)->choices[0]->message->content;
+        }
+        
+    } catch (Exception $e) {
+        $aiResponse = "⚠️ Error: " . $e->getMessage();
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Spend - Financial AI Assistant</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    <title>Smart Spend - AI Receipt Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4cc9f0;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4bb543;
-            --error-color: #ff3333;
-            --border-radius: 12px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --error: #ff3333;
+            --radius: 12px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
             font-family: 'Poppins', sans-serif;
-            line-height: 1.6;
-            color: var(--dark-color);
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+            background: #f5f7fa;
+            margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
-        
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 15px;
         }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-        }
-        
-        header h1 {
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        header p.subtitle {
-            color: var(--secondary-color);
-            font-size: 1.1rem;
-        }
-        
         .chat-container {
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             overflow: hidden;
-            margin-bottom: 30px;
         }
-        
         .chat-header {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(to right, var(--primary), var(--secondary));
             color: white;
             padding: 15px 20px;
             font-size: 1.2rem;
-            font-weight: 500;
         }
-        
         .chat-body {
             padding: 20px;
-            min-height: 300px;
             max-height: 500px;
             overflow-y: auto;
         }
-        
         .message {
             margin-bottom: 15px;
-            display: flex;
         }
-        
-        .user-message {
-            justify-content: flex-end;
-        }
-        
-        .ai-message {
-            justify-content: flex-start;
-        }
-        
+        .user-message { text-align: right; }
+        .ai-message { text-align: left; }
         .message-content {
-            max-width: 80%;
+            display: inline-block;
             padding: 12px 16px;
-            border-radius: var(--border-radius);
-            position: relative;
-            line-height: 1.5;
+            border-radius: var(--radius);
+            max-width: 80%;
         }
-        
         .user-message .message-content {
-            background-color: var(--primary-color);
+            background: var(--primary);
             color: white;
-            border-bottom-right-radius: 5px;
         }
-        
         .ai-message .message-content {
-            background-color: var(--light-color);
-            border: 1px solid #e9ecef;
-            border-bottom-left-radius: 5px;
+            background: var(--light);
+            border: 1px solid #eee;
         }
-        
-        .chat-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .chat-input {
+        table {
+            border-collapse: collapse;
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius);
-            font-family: inherit;
-            font-size: 1rem;
-            resize: none;
-            transition: var(--transition);
+            margin: 10px 0;
         }
-        
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        #file-input {
+            display: none;
+        }
+        #preview-container {
+            margin-top: 15px;
+        }
+        #preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            display: none;
+        }
+        .chat-form {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
         .submit-btn {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            background: var(--primary);
             color: white;
             border: none;
             padding: 12px 25px;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            font-weight: 500;
+            border-radius: var(--radius);
             cursor: pointer;
-            transition: var(--transition);
-            align-self: flex-end;
+            float: right;
+            transition: all 0.3s;
         }
-        
         .submit-btn:hover {
+            background: var(--secondary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .typing-indicator {
-            display: none;
+        .error-message {
+            color: var(--error);
+            background: rgba(255, 51, 51, 0.1);
             padding: 10px;
-            color: #6c757d;
-            font-style: italic;
-        }
-        
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
-            }
-            
-            .message-content {
-                max-width: 90%;
-            }
+            border-radius: var(--radius);
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Smart Spend AI</h1>
-            <p class="subtitle">Your personal financial assistant</p>
-        </header>
-        
         <div class="chat-container">
             <div class="chat-header">
-                Financial Advice Chat
+                <i class="fas fa-receipt"></i> Smart Spend Financial Advisor
             </div>
-            
+
             <div class="chat-body" id="chatBody">
                 <?php if (!empty($aiResponse)): ?>
-                    <div class="message user-message">
-                        <div class="message-content">
-                            <?php echo htmlspecialchars($_POST['userMessage'] ?? ''); ?>
+                    <?php if (isset($_FILES['receipt'])): ?>
+                        <div class="message user-message">
+                            <div class="message-content">
+                                <i class="fas fa-receipt"></i> Uploaded Receipt
+                                <?php if (isset($_FILES['receipt']['name'])): ?>
+                                    <div style="font-size: 0.8em; margin-top: 5px;">
+                                        <?= htmlspecialchars($_FILES['receipt']['name']) ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                    </div>
-                    
+                    <?php else: ?>
+                        <div class="message user-message">
+                            <div class="message-content">
+                                <?= htmlspecialchars($_POST['userMessage'] ?? '') ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="message ai-message">
                         <div class="message-content">
-                            <?php echo htmlspecialchars($aiResponse); ?>
+                            <?= nl2br(htmlspecialchars($aiResponse)) ?>
                         </div>
                     </div>
                 <?php else: ?>
-                    <div class="welcome-message" style="text-align: center; padding: 20px; color: #6c757d;">
-                        <p>Hello! I'm your Smart Spend AI assistant. Ask me anything about budgeting, saving, or personal finance.</p>
-                        <p>Try questions like:<br>
-                        "How can I save more money?"<br>
-                        "What's the 50/30/20 budget rule?"<br>
-                        "Tips for reducing monthly expenses?"</p>
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <i class="fas fa-receipt" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h3>Upload a Receipt</h3>
+                        <div style="margin-top: 30px; font-family: 'Poppins', sans-serif; line-height: 1.4;">
+        <p style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; color: var(--dark);">
+            Hello! I'm your Smart Spend AI assistant. Ask me anything about budgeting, saving, or personal finance.
+        </p>
+        <p style="font-weight: 500; margin: 5px 0; color: var(--primary);">Try something like this:</p>
+        <p style="margin: 5px 0; color: var(--dark);">"How can I save more money?"</p>
+        <p style="margin: 5px 0; color: var(--dark);">"Help me with my taxes"</p>
+    </div>
+                           
+                        </p>
                     </div>
                 <?php endif; ?>
-                
-                <div class="typing-indicator" id="typingIndicator">
-                    Smart Spend is typing...
-                </div>
             </div>
-            
-            <form method="POST" action="chatbox.php" class="chat-form" id="chatForm">
-                <textarea name="userMessage" class="chat-input" rows="3" placeholder="Type your financial question here..." required></textarea>
-                <button type="submit" class="submit-btn">Send Message</button>
+
+            <form method="POST" action="" class="chat-form" enctype="multipart/form-data" id="chatForm">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem;"></i>
+                    <p>Drag & drop receipt or click to browse</p>
+                    <p style="font-size: 0.8em; color: #666;">(Supports JPEG, PNG, GIF, WebP up to 20MB)</p>
+                    <input type="file" id="file-input" name="receipt" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <div id="preview-container">
+                        <img id="preview-image" alt="Receipt preview">
+                    </div>
+                </div>
+
+                <textarea name="userMessage" placeholder="Or ask a financial question..." style="width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid #ddd; margin-top: 10px; min-height: 80px;"></textarea>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Analyze
+                </button>
+                <div style="clear: both;"></div>
             </form>
         </div>
-        
-        <footer>
-            <p>&copy; <?php echo date('Y'); ?> Smart Spend AI. All rights reserved.</p>
-        </footer>
     </div>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatBody = document.getElementById('chatBody');
-            chatBody.scrollTop = chatBody.scrollHeight;
-            
-            const chatForm = document.getElementById('chatForm');
-            const typingIndicator = document.getElementById('typingIndicator');
-            
-            chatForm.addEventListener('submit', function() {
-                typingIndicator.style.display = 'block';
-                chatBody.scrollTop = chatBody.scrollHeight;
-            });
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length) {
+                const file = e.target.files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImage.src = event.target.result;
+                        previewImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            uploadArea.style.borderColor = 'var(--primary)';
+            uploadArea.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+        }
+
+        function unhighlight() {
+            uploadArea.style.borderColor = '#ccc';
+            uploadArea.style.backgroundColor = 'transparent';
+        }
+
+        uploadArea.addEventListener('drop', function(e) {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
         });
     </script>
 </body>
