@@ -105,8 +105,12 @@ nav a:hover {
     margin-bottom: 15px;
 }
 
-.card p {
-    font-size: 14px;
+#categoryChart {
+    width: 80% !important;
+    height: auto !important;
+    max-width: 250px; /* Limit max width */
+    margin: 0 auto;  /* Center the pie chart */
+    display: block;
 }
 
 .card canvas {
