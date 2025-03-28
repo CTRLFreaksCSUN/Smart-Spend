@@ -33,30 +33,60 @@
           <h2>Welcome Back</h2>
           <p class="subtitle">Sign in to your financial dashboard</p>
           
-          <form method="POST" class="login-form">
-            <span class="error"><?php echo $errorMsg?></span>
-            
-            <div class="form-group">
-              <label for="email">Email</label>
-              <div class="input-with-icon">
-                <i class="fas fa-envelope"></i>
-                <input type="text" id="email" name="email" placeholder="johndoe@example.com">
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="password">Password</label>
-              <div class="input-with-icon">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="password" name="password" placeholder="••••••••">
-              </div>
-              <a href="#" class="forgot-password">Forgot password?</a>
-            </div>
-            
-            <button type="submit" name="login" class="btn btn-primary">
-              <i class="fas fa-sign-in-alt"></i> Sign In
-            </button>
-          </form>
+
+          <form method="POST" class="login-form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+    <!-- Display all error messages -->
+    <?php if (!empty($errorMsg)): ?>
+        <div class="error-messages">
+            <?php if ($showBothErrors): ?>
+                <?php if (isset($errorMsg['email'])): ?>
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['email']; ?>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($errorMsg['password'])): ?>
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['password']; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            <?php if (isset($errorMsg['auth'])): ?>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['auth']; ?>
+                </div>
+            <?php endif; ?>
+            <?php if (isset($errorMsg['system'])): ?>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['system']; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+    
+    <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="text" id="email" name="email" placeholder="johndoe@example.com" 
+                   value="<?php echo htmlspecialchars($email); ?>">
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" name="password" placeholder="••••••••">
+        </div>
+        <a href="#" class="forgot-password">Forgot password?</a>
+    </div>
+    
+    <button type="submit" name="login" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+    </button>
+</form>
+
+
         </div>
       </div>
       
