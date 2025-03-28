@@ -1,11 +1,4 @@
 <?php
-session_start(); 
-
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header('Location: LoginPage.php');
-    exit;
-}
-
 // Dummy data for charts
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $spendingData = [200, 300, 250, 400, 350, 450];
@@ -47,11 +40,11 @@ $predictedData = [300, 350, 400, 450, 500, 550];
     </div>
     
     <div class="nav-container">
-    <nav>
-        <a href="DashboardPage.php">Dashboard</a>
-        <a href="#">Documents</a>
-        <a href="uploadDocs.php">Upload Documents</a> <!-- Updated link -->
-    </nav>
+        <nav>
+            <a href="#">Dashboard</a>
+            <a href="#">Documents</a>
+            <a href="#">Upload Documents</a>
+        </nav>
     </div>
     
     <div class="profile-icon">
@@ -97,7 +90,7 @@ $predictedData = [300, 350, 400, 450, 500, 550];
 
     <!-- Predicted Spending -->
     <div class="card">
-        <h2>Predicted Spending</h2>
+        <p>Predicted Spending</p>
         <canvas id="predictedChart"></canvas>
     </div>
 

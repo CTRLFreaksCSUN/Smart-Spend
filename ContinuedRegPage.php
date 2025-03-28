@@ -77,7 +77,7 @@
         <!-- Form Actions -->
         <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
           <input type="submit" name="cancel" value="Cancel" class="register-button" onclick="window.location.href='LoginPage.php';">
-          <input type="submit" name="finish" value="Complete Setup" class="register-button" onclick="goToDashboard()">
+          <input type="submit" name="finish" value="Complete Setup" class="register-button" onclick="window.location.href='DashboardPage.php';">
         </div>
       </div>
     </main>
@@ -122,9 +122,6 @@
       container.appendChild(input);
     }
 
-    function goToDashboard() {
-    window.location.href = 'DashboardPage.php';
-    }
   </script>
 
   <script src="bubbleChat.js"></script>
