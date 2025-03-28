@@ -2,52 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-    <meta name="author" content="CTRL_Freaks">
-     <meta name="description" content="Proof of concept for Smart Spend register.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="60">
-    <title>Smart Spend(POC)-Register</title>
-      <link rel="stylesheet" href="Registerstyle.css?v=<?php echo time(); ?>">
+  <meta name="author" content="CTRL_Freaks">
+  <meta name="description" content="Proof of concept for Smart Spend register.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Spend - Register</title>
+  <link rel="stylesheet" href="Registerstyle.css?v=<?php echo time(); ?>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <header>
-  <h1> <img src="images/SmartSpendLogo.png"
-        alt="Smart Spend" style="width:90px; height:80px;"> Smart Spend</h1>
-  </header>
-  <br>
+  <div class="background-overlay"></div>
+  
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <img src="images/SmartSpendLogo.png" alt="Smart Spend" class="logo">
+        <h1>Smart Spend</h1>
+      </div>
+    </header>
 
-  <?php 
-  $path = __DIR__; 
-  include $path . '/validate_register.php';?>
+    <?php 
+    $path = __DIR__; 
+    include $path . '\validate_register.php';?>
 
- <div class="register">
-     <form method="POST"> 
-  <h2>Sign Up</h2>
-  <span class="error"><?php echo $errorMsg ?></span>
-    <br>
-   <br>
-  <label for="firstname" style="padding-right:18px;">Enter your First Name: </label>
-      <input type="text" id="firstname" name="firstname" placeholder="John" required> <br>
-  <label for="middlename" style="padding-right:0px;">Enter your Middle Name: </label>
-      <input type="text" id="middlename" name="middlename" placeholder="[ Optional ]"> <br>
-  <label for="lastname" style="padding-right:20px;">Enter your Last Name: </label>
-      <input type="text" id="lastname" name="lastname" placeholder="Doe" required> <br>
-        <label for="email" style="padding-right:60px;">Enter your Email: </label>
-     <input type="text" id="email" name="email" placeholder="newuser123@gmail.com" required> <br>
-  <label for="password" style="padding-right:34px;">Enter new Password: </label>
-     <input type="password" id="password" name="password" placeholder="$Password1234" required> <br>
-  <label for="password" style="padding-right:9px;">Re-enter new Password: </label>
-     <input type="password" id="re-password" name="re-password" placeholder="$Password1234" required> <br>
-    <br>
-  <br>
-     <input type="submit" id="register" name="register" value="Sign Up">
-     </input>
-     </form>
-  <form action="LoginPage.php" target="_self">
-     <input type="submit" id="login" name="login" value="Sign In"></input>
- </form>
- </div>
-  <footer>
-      &copy; CTRL_Freaks - 2025
-  </footer>
+    <main class="register-container">
+      <div class="register-card">
+        <h2>Create Your Account</h2>
+        <p class="subtitle">Join Smart Spend and take control of your finances</p>
+        
+        <?php if (!empty($errorMsg)): ?>
+          <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg; ?>
+          </div>
+        <?php endif; ?>
+        
+        <form method="POST" class="register-form">
+          <div class="form-group">
+            <div class="input-group">
+              <input type="text" id="firstname" name="firstname" placeholder=" " value="<?php echo htmlspecialchars($_POST['firstname'] ?? ''); ?>">
+              <label for="firstname">First Name</label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="input-group">
+              <input type="text" id="middlename" name="middlename" placeholder=" " value="<?php echo htmlspecialchars($_POST['middlename'] ?? ''); ?>">
+              <label for="middlename">Middle Name <span class="optional">(Optional)</span></label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="input-group">
+              <input type="text" id="lastname" name="lastname" placeholder=" " value="<?php echo htmlspecialchars($_POST['lastname'] ?? ''); ?>">
+              <label for="lastname">Last Name</label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="input-group">
+              <input type="email" id="email" name="email" placeholder=" " value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+              <label for="email">Email Address</label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="input-group">
+              <input type="password" id="password" name="password" placeholder=" ">
+              <label for="password">Password</label>
+              <i class="fas fa-eye toggle-password"></i>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="input-group">
+              <input type="password" id="re-password" name="re-password" placeholder=" ">
+              <label for="re-password">Confirm Password</label>
+              <i class="fas fa-eye toggle-password"></i>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" name="register" class="btn btn-primary">
+              <i class="fas fa-user-plus"></i> Create Account
+            </button>
+            
+            <div class="login-link">
+              Already have an account? <a href="LoginPage.php">Sign In</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+    
+    <footer>
+      &copy; CTRL_Freaks - 2025 | Smart Spend Financial Solutions
+    </footer>
+  </div>
+  
+  <script>
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+      icon.addEventListener('click', function() {
+        const input = this.parentElement.querySelector('input');
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+      });
+    });
+  </script>
 </body>
+</html>
