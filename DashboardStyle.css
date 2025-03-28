@@ -216,3 +216,7 @@ nav a:hover {
         margin-bottom: 100px;
     }
 }
+nav a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid var(--accent-color);
+}
