@@ -77,7 +77,7 @@
         <!-- Form Actions -->
         <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
           <input type="submit" name="cancel" value="Cancel" class="register-button" onclick="window.location.href='LoginPage.php';">
-          <input type="submit" name="finish" value="Complete Setup" class="register-button">
+          <input type="submit" name="finish" value="Complete Setup" class="register-button" onclick="goToDashboard()">
         </div>
       </div>
     </main>
@@ -120,6 +120,10 @@
       input.placeholder = "Custom goal name";
       input.className = "custom-input";
       container.appendChild(input);
+    }
+
+    function goToDashboard() {
+    window.location.href = 'DashboardPage.php';
     }
   </script>
 
