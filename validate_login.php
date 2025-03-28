@@ -1,4 +1,5 @@
 <?php
+session_start();
 use Aws\DynamoDb\Marshaler;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Exception\DynamoDbException;
@@ -79,5 +80,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     }
     
     $showBothErrors = true;
+}
+
+if ($_SESSION['loggedin'] ?? false) {
+    header('Location: LoginPage.php');
+    exit;
 }
 ?>

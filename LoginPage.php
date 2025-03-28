@@ -25,7 +25,7 @@
 
     <?php 
     $path = __DIR__;
-    include $path . '\validate_login.php'?>
+    include $path . '/validate_login.php'?>
 
     <main class="content-wrapper">
       <div class="login-section">

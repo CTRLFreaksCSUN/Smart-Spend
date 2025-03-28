@@ -1,5 +1,11 @@
 <?php
-// DashboardPage.php
+session_start(); 
+
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    header('Location: LoginPage.php');
+    exit;
+}
+
 // Dummy data for charts
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $spendingData = [200, 300, 250, 400, 350, 450];
