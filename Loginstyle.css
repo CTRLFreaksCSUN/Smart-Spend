@@ -303,3 +303,28 @@
 	color: var(--accent-color); /* Uses existing light blue accent color */
   }
 
+
+
+  .error-messages {
+    margin-bottom: 1.5rem;
+}
+
+.error-message {
+    color: var(--error-color);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-left: 3px solid var(--error-color);
+}
+
+.error-message:last-child {
+    margin-bottom: 0;
+}
+
+.error-message i {
+    font-size: 1.2rem;
+}
