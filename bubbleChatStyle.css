@@ -107,21 +107,9 @@
   gap: 10px;
 }
 
-.chat-title::before {
-  content: "";
-  display: block;
-  width: 8px;
-  height: 8px;
-  background-color: #4cc9f0;
-  border-radius: 50%;
-  animation: pulse 1.5s infinite;
-}
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
-}
+
+
 
 .chat-header button {
   background: none;
@@ -246,4 +234,18 @@
 
 .chat-bubble-button:hover::after {
   opacity: 1;
+}
+.chat-bubble-button {
+  /* Existing styles... */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Remove if you had icon styles */
+.chat-bubble-button i {
+  display: none !important;
 }
