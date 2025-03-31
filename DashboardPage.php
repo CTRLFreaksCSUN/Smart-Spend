@@ -1,24 +1,18 @@
 <?php
-// Dummy data for charts
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $spendingData = [200, 300, 250, 400, 350, 450];
 
-// Budget vs Actual Spending
 $budgetData = [500, 550, 580, 620, 600, 650];
 $actualData = [480, 530, 560, 610, 590, 640];
 
-// Income vs Spending
 $incomeData = [700, 720, 750, 780, 760, 800];
 $expenseData = [500, 540, 580, 600, 590, 620];
 
-// Top Spending Categories (Pie Chart)
 $categoryLabels = ['Rent', 'Groceries', 'Shopping', 'Transport', 'Entertainment'];
 $categoryData = [40, 25, 15, 10, 10];
 
-// Savings Progress (Bar Chart)
 $savingsData = [150, 180, 200, 220, 250, 300];
 
-// Predicted Spending (Line Chart)
 $predictedData = [300, 350, 400, 450, 500, 550];
 ?>
 
@@ -27,6 +21,7 @@ $predictedData = [300, 350, 400, 450, 500, 550];
 <head>
     <meta charset="UTF-8">
     <title>Smart Spend - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="DashboardStyle.css">
     <link rel="stylesheet" href="bubbleChatStyle.css"> <!-- Added chat bubble CSS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,61 +29,58 @@ $predictedData = [300, 350, 400, 450, 500, 550];
 <body>
 
 <header>
-    <div class="logo-title">
-        <img src="images/SmartSpendLogo.png" alt="Smart Spend Logo" class="logo" style="width:90px; height:80px;">
-        <h1>Smart Spend</h1>
-    </div>
-    
-    <div class="nav-container">
-        <nav>
-            <a href="#">Dashboard</a>
-            <a href="#">Documents</a>
-            <a href="#">Upload Documents</a>
+    <div class="header-container">
+        <div class="logo-title">
+            <img src="images/SmartSpendLogo.png" alt="Smart Spend Logo" class="logo">
+            <h1>Smart Spend</h1>
+        </div>
+        
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="#" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-upload"></i> Upload</a></li>
+            </ul>
         </nav>
-    </div>
-    
-    <div class="profile-icon">
-        <img src="images/ProfilePic.png" alt="User" class="avatar">
+        
+        <div class="profile-section">
+            <div class="profile-dropdown">
+                <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
+                <span class="profile-name">User</span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+        </div>
     </div>
 </header>
-
-<!-- Background wave image -->
 <div class="background"></div>
 
-<!-- Graph cards -->
 <main class="card-grid">
 
-    <!-- Spending Trends -->
-    <div class="card">
-        <h2>Spending Trends</h2>
-        <canvas id="spendingChart"></canvas>
+    <div class="card" onclick="window.location.href='SpendTrend.php';" style="cursor: pointer;">
+    <h2>Spending Trends</h2>
+    <canvas id="spendingChart"></canvas>
     </div>
 
-    <!-- Budget vs Actual Spending -->
     <div class="card">
         <h2>Budget vs Actual Spending</h2>
         <canvas id="budgetChart"></canvas>
     </div>
 
-    <!-- Income vs Spending -->
     <div class="card">
         <h2>Income vs Spending</h2>
         <canvas id="incomeChart"></canvas>
     </div>
 
-    <!-- Top Spending Categories -->
     <div class="card">
         <h2>Top Spending Categories</h2>
         <canvas id="categoryChart"></canvas>
     </div>
 
-    <!-- Savings Progress -->
     <div class="card">
         <h2>Savings Progress</h2>
         <canvas id="savingsChart"></canvas>
     </div>
 
-    <!-- Predicted Spending -->
     <div class="card">
         <p>Predicted Spending</p>
         <canvas id="predictedChart"></canvas>
@@ -96,11 +88,8 @@ $predictedData = [300, 350, 400, 450, 500, 550];
 
 </main>
 
-<!-- Floating Chat Bubble & Popup Container -->
 <div class="chat-bubble-container" id="chatContainer">
-    <!-- Bubble Button -->
     <div class="chat-bubble-button" id="chatBubble">?</div>
-    <!-- Chat Popup (hidden by default) -->
     <div class="chat-popup" id="chatPopup">
         <div class="chat-header">
             <span>AI Financial Assistant</span>
@@ -112,32 +101,49 @@ $predictedData = [300, 350, 400, 450, 500, 550];
     </div>
 </div>
 
-<!-- Graph Logic -->
 <script>
-    const ctx = document.getElementById('spendingChart').getContext('2d');
-    const spendingChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($labels); ?>,
-            datasets: [{
-                label: 'Spending ($)',
-                data: <?php echo json_encode($spendingData); ?>,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
+const spendingCard = document.querySelector('#spendingChart').closest('.card');
+const ctx = document.getElementById('spendingChart').getContext('2d');
 
-    // Budget vs Actual Spending - Bar Chart
+const spendingChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?php echo json_encode($labels); ?>,
+        datasets: [{
+            label: 'Spending ($)',
+            data: <?php echo json_encode($spendingData); ?>,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        onClick: (e) => {
+            // Prevent card click when clicking directly on chart elements
+            e.stopPropagation();
+        },
+        onHover: (e) => {
+            // Change cursor style when hovering over chart elements
+            const element = e.chart.getElementsAtEventForMode(
+                e, 'nearest', { intersect: true }, false
+            );
+            e.native.target.style.cursor = element.length ? 'pointer' : 'default';
+        }
+    }
+});
+
+spendingCard.addEventListener('click', function(e) {
+    if (!e.target.closest('canvas')) {
+        window.location.href = 'SpendTrend.php';
+    }
+});
+
     new Chart(document.getElementById('budgetChart'), {
         type: 'bar',
         data: {
@@ -158,7 +164,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
         options: { responsive: true }
     });
 
-    // Income vs Spending - Line Chart
     new Chart(document.getElementById('incomeChart'), {
         type: 'line',
         data: {
@@ -183,7 +188,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
         options: { responsive: true }
     });
 
-    // Top Spending Categories - Pie Chart
     new Chart(document.getElementById('categoryChart'), {
         type: 'pie',
         data: {
@@ -197,7 +201,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
         options: { responsive: true }
     });
 
-    // Savings Progress - Bar Chart
     new Chart(document.getElementById('savingsChart'), {
         type: 'bar',
         data: {
@@ -211,7 +214,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
         options: { responsive: true }
     });
 
-    // Predicted Spending - Line Chart
     new Chart(document.getElementById('predictedChart'), {
         type: 'line',
         data: {
