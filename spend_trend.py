@@ -1,5 +1,5 @@
 # spend_trend.py
-# pip install fastapi uvicorn numpy scipy
+# pip install fastapi uvicorn numpy scipy flask
 # to run python spend_trend.py
 
 
