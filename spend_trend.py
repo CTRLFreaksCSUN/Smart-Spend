@@ -2,6 +2,7 @@
 # pip install fastapi uvicorn numpy scipy flask
 # to run python spend_trend.py
 
+from analytics import train_forecasting_model, forecast_spending, train_anomaly_detector, detect_anomalies, generate_recommendations
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
