@@ -1,5 +1,6 @@
 <?php
-// SmartSpend.php
+// smartspend.php
+session_start();
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
     'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
@@ -51,6 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $anomalies = detect_anomalies($values);
             $analytics['anomalies'][$cat] = $anomalies;
         }
+        
+        // Save to history
+        if (!isset($_SESSION['spending_history'])) {
+            $_SESSION['spending_history'] = [];
+        }
+        
+        $entry = $analytics;
+        $entry['timestamp'] = date('Y-m-d H:i:s');
+        array_unshift($_SESSION['spending_history'], $entry);
+        $_SESSION['spending_history'] = array_slice($_SESSION['spending_history'], 0, 50);
     }
 }
 
@@ -59,10 +70,7 @@ function generate_forecast($historical_data, $periods = 3) {
     $n = count($historical_data);
     if ($n < 2) return array_fill(0, $periods, end($historical_data));
     
-    $sumX = 0;
-    $sumY = 0;
-    $sumXY = 0;
-    $sumX2 = 0;
+    $sumX = $sumY = $sumXY = $sumX2 = 0;
     
     foreach ($historical_data as $i => $value) {
         $x = $i + 1;
@@ -114,6 +122,8 @@ function detect_anomalies($data) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="spendtrend.css">
+    <!-- Add bubble chat CSS -->
+    <link rel="stylesheet" href="bubbleChatStyle.css">
     <style>
         :root {
             --primary-blue: #1e88e5;
@@ -121,6 +131,9 @@ function detect_anomalies($data) {
             --light-blue: #e3f2fd;
             --white: #ffffff;
             --light-gray: #f5f5f5;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
         }
         
         .background {
@@ -143,32 +156,6 @@ function detect_anomalies($data) {
             z-index: 1;
         }
         
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header {
-            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
-            color: white;
-            padding: 2.5rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card {
-            background-color: white;
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-        }
-        
-        .card-header {
-            background-color: var(--primary-blue);
-            color: white;
-            border-radius: 10px 10px 0 0 !important;
-        }
-        
         .anomaly-badge {
             position: absolute;
             top: -8px;
@@ -184,14 +171,24 @@ function detect_anomalies($data) {
             font-size: 12px;
         }
         
+        .forecast-card {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .forecast-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
         @media (max-width: 768px) {
-            .background {
-                background-attachment: scroll;
-                opacity: 0.15;
+            .form-footer-buttons {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            .header {
-                padding: 1.5rem 0;
+            .form-footer-buttons .btn {
+                width: 100%;
             }
         }
     </style>
@@ -216,17 +213,17 @@ function detect_anomalies($data) {
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'SmartSpend.php') ? 'active' : '' ?>" href="#">
+                            <a class="nav-link <?= ($current_page == 'smartspend.php') ? 'active' : '' ?>" href="smartspend.php">
                                 <i class="fas fa-chart-pie me-1"></i> Spending Trends
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link <?= ($current_page == 'history.php') ? 'active' : '' ?>" href="history.php">
                                 <i class="fas fa-history me-1"></i> History
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link <?= ($current_page == 'settings.php') ? 'active' : '' ?>" href="settings.php">
                                 <i class="fas fa-cog me-1"></i> Settings
                             </a>
                         </li>
@@ -243,6 +240,16 @@ function detect_anomalies($data) {
         </div>
 
         <div class="container pb-5">
+            <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($analytics)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> Analysis completed and saved to history!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="mt-2">
+                    <a href="history.php" class="alert-link">View full history</a>
+                </div>
+            </div>
+            <?php endif; ?>
+            
             <div class="card">
                 <div class="card-header">
                     <h3 class="mb-0"><i class="fas fa-edit me-2"></i> Enter Your Expenses</h3>
@@ -261,7 +268,8 @@ function detect_anomalies($data) {
                                     <label class="form-label">Expenses (comma separated)</label>
                                     <input type="text" class="form-control" 
                                            name="expenses[<?= $cat ?>]" 
-                                           placeholder="e.g., 25.50, 12.75, 30.00">
+                                           placeholder="e.g., 25.50, 12.75, 30.00"
+                                           value="<?= isset($_POST['expenses'][$cat]) ? htmlspecialchars($_POST['expenses'][$cat]) : '' ?>">
                                 </div>
                                 
                                 <div class="mb-3">
@@ -270,21 +278,27 @@ function detect_anomalies($data) {
                                         <span class="input-group-text">$</span>
                                         <input type="number" step="0.01" class="form-control" 
                                                name="budgets[<?= $cat ?>]" 
-                                               placeholder="Budget amount">
+                                               placeholder="Budget amount"
+                                               value="<?= isset($_POST['budgets'][$cat]) ? htmlspecialchars($_POST['budgets'][$cat]) : '' ?>">
                                     </div>
                                 </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
                         
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <select class="form-select w-auto" name="timeframe">
+                        <div class="d-flex justify-content-between align-items-center mt-4 form-footer-buttons">
+                            <select class="form-select" name="timeframe" style="width: auto;">
                                 <option value="6m">Last 6 Months</option>
                                 <option value="1y">Last 12 Months</option>
                             </select>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-chart-bar me-2"></i> Analyze Spending
-                            </button>
+                            <div class="d-flex gap-2">
+                                <a href="history.php" class="btn btn-outline-primary">
+                                    <i class="fas fa-history me-2"></i> View History
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar me-2"></i> Analyze Spending
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -312,7 +326,7 @@ function detect_anomalies($data) {
                         <div class="col-md-4">
                             <div class="stat-card">
                                 <h6 class="text-muted">Savings</h6>
-                                <div class="stat-value <?= $analytics['savings'] >= 0 ? 'positive' : 'negative' ?>">
+                                <div class="stat-value <?= $analytics['savings'] >= 0 ? 'text-success' : 'text-danger' ?>">
                                     $<?= number_format(abs($analytics['savings']), 2) ?>
                                     <i class="fas fa-arrow-<?= $analytics['savings'] >= 0 ? 'down' : 'up' ?> ms-2"></i>
                                 </div>
@@ -340,11 +354,11 @@ function detect_anomalies($data) {
                     
                     <!-- Forecast Section -->
                     <div class="mb-5">
-                        <h4 class="mb-4"><i class="fas fa-chart-line text-primary me-2"></i> Spending Forecast</h4>
+                        <h4 class="mb-4"><i class="fas fa-chart-line text-primary me-2"></i> Spending Forecast & Anomalies</h4>
                         <div class="row">
                             <?php foreach ($analytics['forecasts'] as $cat => $forecast): ?>
                             <div class="col-md-4 mb-3">
-                                <div class="card h-100">
+                                <div class="card h-100 forecast-card">
                                     <div class="card-body position-relative">
                                         <?php if (!empty($analytics['anomalies'][$cat])): ?>
                                             <span class="anomaly-badge" title="Anomalies detected">
@@ -394,6 +408,21 @@ function detect_anomalies($data) {
         </div>
     </div>
 
+    <!-- Bubble Chat Container -->
+    <div id="chatContainer" class="chat-bubble-container">
+        <button id="chatBubble" class="chat-bubble-button">?</button>
+        <div id="chatPopup" class="chat-popup">
+            <div class="chat-header">
+                <div class="chat-title">Smart Spend Assistant</div>
+                <button id="closeChat"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chat-content">
+                <iframe src="chatbox.php" frameborder="0"></iframe>
+            </div>
+            <div class="resize-handle"></div>
+        </div>
+    </div>
+
     <?php if ($analytics && isset($analytics['historical'])): ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -404,8 +433,6 @@ function detect_anomalies($data) {
                 console.error('Canvas element not found');
                 return;
             }
-            
-            console.log('Chart data:', <?= json_encode($analytics['historical']) ?>);
             
             const datasets = [];
             
@@ -440,7 +467,7 @@ function detect_anomalies($data) {
                             <?php 
                             $last_historical = end($analytics['historical']['data'][$cat]);
                             echo json_encode($last_historical) . ', ' . json_encode($forecast);
-                            ?>,
+                            ?>
                         ],
                         borderColor: '<?= $categories[$cat]['color'] ?>',
                         borderWidth: 2,
@@ -485,5 +512,7 @@ function detect_anomalies($data) {
     <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Add bubble chat JS -->
+    <script src="bubbleChat.js"></script>
 </body>
 </html>
