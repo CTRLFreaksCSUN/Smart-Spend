@@ -1,5 +1,5 @@
 <?php
-// SpendTrend.php
+// SmartSpend.php
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
     'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
@@ -39,6 +39,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = curl_exec($ch);
     $analytics = json_decode($response, true);
     curl_close($ch);
+    
+    // Add machine learning predictions and anomaly detection
+    if ($analytics) {
+        foreach ($analytics['historical']['data'] as $cat => $values) {
+            // Generate forecasts for each category
+            $forecast = generate_forecast($values);
+            $analytics['forecasts'][$cat] = $forecast;
+            
+            // Detect anomalies for each category
+            $anomalies = detect_anomalies($values);
+            $analytics['anomalies'][$cat] = $anomalies;
+        }
+    }
+}
+
+function generate_forecast($historical_data, $periods = 3) {
+    // Simple forecasting using linear regression
+    $n = count($historical_data);
+    if ($n < 2) return array_fill(0, $periods, end($historical_data));
+    
+    $sumX = 0;
+    $sumY = 0;
+    $sumXY = 0;
+    $sumX2 = 0;
+    
+    foreach ($historical_data as $i => $value) {
+        $x = $i + 1;
+        $sumX += $x;
+        $sumY += $value;
+        $sumXY += $x * $value;
+        $sumX2 += $x * $x;
+    }
+    
+    $slope = ($n * $sumXY - $sumX * $sumY) / ($n * $sumX2 - $sumX * $sumX);
+    $intercept = ($sumY - $slope * $sumX) / $n;
+    
+    $forecast = [];
+    for ($i = 1; $i <= $periods; $i++) {
+        $forecast[] = $intercept + $slope * ($n + $i);
+    }
+    
+    return $forecast;
+}
+
+function detect_anomalies($data) {
+    // Simple anomaly detection using IQR method
+    if (count($data) < 3) return [];
+    
+    sort($data);
+    $q1 = $data[floor(count($data) * 0.25)];
+    $q3 = $data[floor(count($data) * 0.75)];
+    $iqr = $q3 - $q1;
+    
+    $lower_bound = $q1 - 1.5 * $iqr;
+    $upper_bound = $q3 + 1.5 * $iqr;
+    
+    $anomalies = [];
+    foreach ($data as $value) {
+        if ($value < $lower_bound || $value > $upper_bound) {
+            $anomalies[] = $value;
+        }
+    }
+    
+    return $anomalies;
 }
 ?>
 <!DOCTYPE html>
@@ -105,6 +169,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 10px 10px 0 0 !important;
         }
         
+        .anomaly-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
         @media (max-width: 768px) {
             .background {
                 background-attachment: scroll;
@@ -121,40 +200,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="background"></div>
     
     <div class="content-wrapper">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="DashboardPage.php">
-            <i class="fas fa-wallet me-2"></i> Smart Spend
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link <?= ($current_page == 'DashboardPage.php') ? 'active' : '' ?>" href="DashboardPage.php">
-                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?= ($current_page == 'SpendTrend.php') ? 'active' : '' ?>" href="#">
-                        <i class="fas fa-chart-pie me-1"></i> Spending Trends
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-history me-1"></i> History
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-cog me-1"></i> Settings
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="DashboardPage.php">
+                    <i class="fas fa-wallet me-2"></i> Smart Spend
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($current_page == 'DashboardPage.php') ? 'active' : '' ?>" href="DashboardPage.php">
+                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($current_page == 'SmartSpend.php') ? 'active' : '' ?>" href="#">
+                                <i class="fas fa-chart-pie me-1"></i> Spending Trends
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-history me-1"></i> History
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cog me-1"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
         <div class="header text-center">
             <div class="container">
                 <h1><i class="fas fa-wallet me-2"></i> Smart Spend Tracker</h1>
@@ -258,6 +338,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endforeach; ?>
                     </div>
                     
+                    <!-- Forecast Section -->
+                    <div class="mb-5">
+                        <h4 class="mb-4"><i class="fas fa-chart-line text-primary me-2"></i> Spending Forecast</h4>
+                        <div class="row">
+                            <?php foreach ($analytics['forecasts'] as $cat => $forecast): ?>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body position-relative">
+                                        <?php if (!empty($analytics['anomalies'][$cat])): ?>
+                                            <span class="anomaly-badge" title="Anomalies detected">
+                                                <i class="fas fa-exclamation"></i>
+                                            </span>
+                                        <?php endif; ?>
+                                        <h5 class="card-title">
+                                            <i class="<?= $categories[$cat]['icon'] ?> me-2" style="color: <?= $categories[$cat]['color'] ?>"></i>
+                                            <?= ucfirst($cat) ?>
+                                        </h5>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Next 3 Periods Forecast:</small>
+                                            <div class="d-flex justify-content-between">
+                                                <?php foreach ($forecast as $i => $value): ?>
+                                                <div>
+                                                    <small>Period <?= $i+1 ?></small>
+                                                    <div class="fw-bold">$<?= number_format($value, 2) ?></div>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                        <?php if (!empty($analytics['anomalies'][$cat])): ?>
+                                            <div class="alert alert-warning p-2 mt-2 mb-0">
+                                                <small>
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Anomalies detected: <?= implode(', ', array_map(function($v) { return '$' . number_format($v, 2); }, $analytics['anomalies'][$cat])) ?>
+                                                </small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
                     <!-- Chart -->
                     <div>
                         <h4 class="mb-4"><i class="fas fa-chart-line text-primary me-2"></i> Spending Trends</h4>
@@ -308,6 +431,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             <?php endforeach; ?>
             
+            // Add forecast data if available
+            <?php if (isset($analytics['forecasts'])): ?>
+                <?php foreach ($analytics['forecasts'] as $cat => $forecast): ?>
+                    datasets.push({
+                        label: '<?= addslashes(ucfirst($cat)) ?> Forecast',
+                        data: [
+                            <?php 
+                            $last_historical = end($analytics['historical']['data'][$cat]);
+                            echo json_encode($last_historical) . ', ' . json_encode($forecast);
+                            ?>,
+                        ],
+                        borderColor: '<?= $categories[$cat]['color'] ?>',
+                        borderWidth: 2,
+                        borderDash: [3, 3],
+                        pointRadius: 0
+                    });
+                <?php endforeach; ?>
+            <?php endif; ?>
+            
             new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -316,7 +458,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Period'
+                            }
+                        }
+                    }
                 }
             });
             
