@@ -3,3 +3,5 @@ SSDBkey.pem
 composer.json
 composer.lock
 vendor
+__pycache__/analytics.cpython-313.pyc
+SmartSpendKeyPair.pem
