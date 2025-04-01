@@ -38,7 +38,8 @@
           </div>
         <?php endif; ?>
         
-        <form method="POST" class="register-form">
+        <form method="POST" class="register-form" target="_parent" onsubmit="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+
           <div class="form-group">
             <div class="input-group">
               <input type="text" id="firstname" name="firstname" placeholder=" " value="<?php echo htmlspecialchars($_POST['firstname'] ?? ''); ?>">
