@@ -1,0 +1,5 @@
+.env
+SSDBkey.pem
+composer.json
+composer.lock
+vendor

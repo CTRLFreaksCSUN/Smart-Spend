@@ -24,8 +24,9 @@
     </header>
 
     <?php 
-    $path = __DIR__;
-    include $path . '\validate_login.php'?>
+    $path = __DIR__; //get current directory
+    include $path . '/validate_login.php';// Include login validation script
+    ?>
 
     <main class="content-wrapper">
       <div class="login-section">
@@ -33,29 +34,30 @@
           <h2>Welcome Back</h2>
           <p class="subtitle">Sign in to your financial dashboard</p>
           
-
+          <!-- Process form and return any validation errors or success messages -->
+           <!-- action: form submits to itself for handling -->
           <form method="POST" class="login-form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
     <!-- Display all error messages -->
-    <?php if (!empty($errorMsg)): ?>
+    <?php if (!empty($errorMsg)): ?> <!-- if error message isn't empty-->
         <div class="error-messages">
-            <?php if ($showBothErrors): ?>
-                <?php if (isset($errorMsg['email'])): ?>
+            <?php if ($showBothErrors): ?> <!-- if multiple errors display them-->
+                <?php if (isset($errorMsg['email'])): ?> <!-- check if email error exists -->
                     <div class="error-message">
                         <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['email']; ?>
                     </div>
                 <?php endif; ?>
-                <?php if (isset($errorMsg['password'])): ?>
+                <?php if (isset($errorMsg['password'])): ?> <!-- check if password error exists -->
                     <div class="error-message">
                         <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['password']; ?>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
-            <?php if (isset($errorMsg['auth'])): ?>
+            <?php if (isset($errorMsg['auth'])): ?> <!-- check if authentication error exists -->
                 <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['auth']; ?>
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['auth']; ?> 
                 </div>
             <?php endif; ?>
-            <?php if (isset($errorMsg['system'])): ?>
+            <?php if (isset($errorMsg['system'])): ?> <!-- checking system error -->
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg['system']; ?>
                 </div>
@@ -68,7 +70,7 @@
         <div class="input-with-icon">
             <i class="fas fa-envelope"></i>
             <input type="text" id="email" name="email" placeholder="johndoe@example.com" 
-                   value="<?php echo htmlspecialchars($email); ?>">
+                   value="<?php echo htmlspecialchars($email ?? ''); ?>">
         </div>
     </div>
     

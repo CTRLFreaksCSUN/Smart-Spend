@@ -24,15 +24,16 @@
     </header>
 
     <?php 
-    $path = __DIR__; 
-    include $path . '\validate_register.php';?>
+    $path = __DIR__; //get current directory
+    include $path . '/validate_register.php'; // Include login validation script
+    ?>
 
     <main class="register-container">
       <div class="register-card">
         <h2>Create Your Account</h2>
         <p class="subtitle">Join Smart Spend and take control of your finances</p>
         
-        <?php if (!empty($errorMsg)): ?>
+        <?php if (!empty($errorMsg)): ?> <!-- if error message isn't empty -->
           <div class="error-message">
             <i class="fas fa-exclamation-circle"></i> <?php echo $errorMsg; ?>
           </div>
