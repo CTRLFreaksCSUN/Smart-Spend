@@ -12,25 +12,148 @@ $env = Dotenv::createImmutable(__DIR__);
 $env->load();
 
 //Initilialize variables
-$email = $password = "";
+$email = $password = $fName = $mName = $lName = $reEnPassw = "";
 $errorMsg = "";
-$db = null;
-$validated = checkEmptyCreds($email, $password, $errorMsg);
+$nameErr = "";
+$passwErr = "";
+$dbClient = null;
 
+//Check for empty credentials
+$validated = checkEmptyCreds($email, $password, $fName, $lName, $reEnPassw);
 //Access stored secrets to retrieve EC2 instance credentials
 $key = $_ENV["KEY"];
 $endPt = $_ENV["ENDPOINT"];
 $region =  $_ENV["REGION"];
 $secret = $_ENV["SECRET"];
 
+//Connect to EC2 instance for managing DynamoDB 
 if ($validated && empty($errorMsg)) {
-   // TODO: Save email and password into DynamoDB
-
-   header("Location: ContinuedRegPage.php");
-   exit(); 
+   $dbClient = connectToDatabase($key, $secret, $region);
+   $newAcc = createAccount($dbClient, $fName, $mName, $lName, $email, $password);
+   
+   //Verify that there are no field errors before signing up
+   if ($newAcc && empty($errorMsg)) {
+      header("Location: ContinuedRegPage.php");
+      exit(); 
+   }
 }
 
-//Connect to EC2 instance for managing DynamoDB 
+
+
+function checkEmptyCreds(&$email, &$password, &$fName, &$lName, &$reEnPassw) {
+   //Analyze each field
+   $creds = array('firstname', 'lastname', 'email', 'password', 're-password');
+   $isValid = false;
+   foreach ($creds as $cr) {
+      if ($_SERVER["REQUEST_METHOD"] == "POST") {
+         //Verify that all fields are not empty
+         if (empty($_POST[$cr])) {
+            $GLOBALS["errorMsg"] = "*Please fill in empty fields.*";
+            return false;
+         }
+
+         switch($cr) {
+            case 'firstname':
+               $fName = scan_input($_POST[$cr]);
+               break;
+            case 'lastname':
+               $lName = scan_input($_POST[$cr]);
+               break;
+            case 'email':
+               $email = scan_input($_POST[$cr]);
+               break;
+            case 'password':
+               $password = scan_input($_POST[$cr]);
+               break;
+            case 're-password':
+               $reEnPassw = scan_input($_POST[$cr]);
+               break;
+         }
+         //Verify that user input is valid
+         $isValid = checkValidCredentials($cr);
+      }
+   }
+
+   return $isValid;
+}
+
+function checkValidCredentials($cr) {
+   switch($cr) {
+      case 'firstname':
+         return nameisValid($cr);
+
+      case 'middlename':
+         return nameisValid($cr);
+
+      case 'lastname':
+         return nameisValid($cr);
+
+      case 'password':
+         return PasswordisValid($cr);
+
+      case 're-password':
+         if ($_POST[$cr] == $_POST['password']) {
+            return true;
+         }
+
+         $GLOBALS['errorMsg'] = "Please re-enter the same password.";
+         return false;
+   }
+}
+
+//Check if name is only alphabetical
+function nameIsValid($cr) {
+   $containsLetters = "/[a-z]{3,16}/i";
+   if (preg_match($containsLetters, $_POST[$cr]) < 1) {
+      $GLOBALS["errorMsg"] = $cr . ' must contain 3-16 alphabetic characters.';
+      return false;
+   }
+   return true;
+}
+
+//Check that password contains all required characters
+function PasswordIsValid($cr) {
+   $letters = array('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z');
+   $numbers = array('1','2','3','4','5','6','7','8','9');
+   $symbols = array('!','@','#','$','%','^','&','*','(',')','[',']','{','}','?','.',',','<','>',';',':','~','`','-','=','+','_');
+   $containsAlpha = false;
+   $containsNum = false;
+   $containsSpecialChars = false;
+   $password = $_POST[$cr];
+   $passwordLen = strlen($password);
+   $isPasswordLength = ($passwordLen >= 8) && ($passwordLen <= 32);
+   //Check for any missing alphabetic, numerical, or special characters
+   //And that the password is the correct length
+   for ($i=0; $i < $passwordLen; $i++) {
+      if (in_array($password[$i], $letters)) {
+         $containsAlpha = true;
+      }
+
+      else if (in_array($password[$i], $numbers)) {
+         $containsNum = true;
+      }
+
+      else if (in_array($password[$i], $symbols)) {
+         $containsSpecialChars = true;
+      }
+   }
+   if (!($containsAlpha) || !($containsNum) || !($containsSpecialChars) || !($isPasswordLength)) {
+      $GLOBALS["errorMsg"] = $cr . ' must contain 8-32 characters, at least one special character($!@&^*#...) and digit.';
+      return false;
+   }
+   return true;
+}
+
+//Filter user input for POST request
+function scan_input($input) {
+  $input = trim($input);
+  $input = stripslashes($input);
+  $input = htmlspecialchars($input);
+  return $input;
+}
+
+
+function connectToDatabase($key, $secret, $region) {
 try {
    $dbClient = DynamoDbClient::factory(array(
       'credentials' => array(
@@ -42,6 +165,15 @@ try {
    ));
    //Create collection (if does not exist)
    $db = createCollection($dbClient);
+   $item = $dbClient->getItem([
+      'Key' => [
+         'c_id' => [
+           'S' => hash("sha256", $GLOBALS["email"])
+         ]
+      ],
+      'TableName' => "Customer"
+   ]);
+   return $dbClient;
 }
 
 catch(UnrecognizedClientException $ucerr) {
@@ -59,34 +191,38 @@ catch(InvalidArgumentException $iaerr) {
 catch(ResourceNotFoundException $rerr) {
    echo 'Could not find requested resource: ' . $rerr->getMessage();
 }
-
-
-
-function checkEmptyCreds(&$email, &$password, &$errMsg) {
-   if ($_SERVER["REQUEST_METHOD"] == "POST") {
-      if (empty($_POST["email"])) {
-         $errMsg = "*Please enter your email.*";
-         return false;
-      }
-
-      $email = scan_input($_POST["email"]);
-
-      if (empty($_POST["password"])) {
-         $errMsg = "*Please enter your password.*";
-         return false;
-      }
-
-      $password = scan_input($_POST["password"]);
-      return true;
-   }
-   return false;
 }
 
-function scan_input($input) {
-  $input = trim($input);
-  $input = stripslashes($input);
-  $input = htmlspecialchars($input);
-  return $input;
+
+function createAccount($dbClient, $fName, $mName, $lName, $email, $password) {
+   if (empty($item["Item"])) {
+      $dbClient->putItem([
+         'Item' => [
+            'Fname' => [
+               'S' => $fName
+            ], 
+            'Mname' => [
+               'S' => $mName
+            ],
+            'Lname' => [
+               'S' => $lName
+            ],
+            'email' => [
+               'S' => $email
+            ],
+            'passwd' => [
+               'S' => password_hash($password, PASSWORD_BCRYPT)
+            ],
+            'c_id' => [
+               'S' => hash('sha256', $email)
+            ]
+         ],
+         'TableName' => "Customer"
+      ]);
+      return true;
+   } 
+   $GLOBALS["errorMsg"] = "User already exists!";
+   return false;
 }
 
 
@@ -124,31 +260,23 @@ function createCollection($dbClient) {
          'AttributeType' => 'S'
       ]
       ],
-   'BillingMode' => 'PROVISIONED',
+   'BillingMode' => 'PAY_PER_REQUEST',
    'DeletionProtectionEnabled' => false,
    'KeySchema' => [
       [
          'AttributeName' => 'c_id',
          'KeyType' => 'HASH'
       ],
-      [
-         'AttributeName' => 'f_id',
-         'KeyType' => 'RANGE'
-      ]
    ],
    'AttributeDefinitions' => [
       [
          'AttributeName' => 'c_id',
-         'AttributeType' => 'N'
+         'AttributeType' => 'S'
       ], 
-      [
-         'AttributeName' => 'f_id',
-         'AttributeType' => 'N'
-      ]
    ],
-   'ProvisionedThroughput' => [
-      'ReadCapacityUnits' => 1,
-      'WriteCapacityUnits' => 1
+   'OnDemandThroughput' => [
+      'MaxReadRequestUnits' => 25,
+      'MaxWriteRequestUnits' => 25
    ],
    'SSESpecification' => [
       'Enabled' => false
@@ -171,11 +299,7 @@ function createCollection($dbClient) {
       [
          'Key' => 'Email',
          'Value' => 'email'
-      ],
-      [
-         'Key' => 'Documents',
-         'Value' => 'docs'
-      ],
+      ]
    ]
 ]
    );
@@ -189,4 +313,3 @@ finally {
    return $collec;
 }
 }
-
