@@ -1,5 +1,5 @@
 # spend_trend.py
-# pip install fastapi uvicorn numpy scipy flask
+# pip install fastapi uvicorn numpy scipy flask statsmodels
 # to run python spend_trend.py
 
 from analytics import train_forecasting_model, forecast_spending, train_anomaly_detector, detect_anomalies, generate_recommendations
