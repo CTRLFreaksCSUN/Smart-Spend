@@ -165,14 +165,6 @@ try {
    ));
    //Create collection (if does not exist)
    $db = createCollection($dbClient);
-   $item = $dbClient->getItem([
-      'Key' => [
-         'c_id' => [
-           'S' => hash("sha256", $GLOBALS["email"])
-         ]
-      ],
-      'TableName' => "Customer"
-   ]);
    return $dbClient;
 }
 
@@ -195,6 +187,14 @@ catch(ResourceNotFoundException $rerr) {
 
 
 function createAccount($dbClient, $fName, $mName, $lName, $email, $password) {
+   $item = $dbClient->getItem([
+      'Key' => [
+         'c_id' => [
+           'S' => hash("sha256", $email)
+         ]
+      ],
+      'TableName' => "Customer"
+   ]);
    if (empty($item["Item"])) {
       $dbClient->putItem([
          'Item' => [
