@@ -23,6 +23,7 @@ function scan_input($data) {
     return $data;
 }
 
+//If request is to sign in, verify valid fields
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     if (empty($_POST["email"])) {
         $errorMsg['email'] = "Please enter your email";
@@ -35,44 +36,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     } else {
         $password = scan_input($_POST["password"]);
     }
-    
+    //If fields are filled, search for credentials in database
     if (empty($errorMsg)) {
         try {
             // Initialize DynamoDB client
             $dynamoDb = new DynamoDbClient([
-                'region'  => $_ENV['AWS_REGION'],
+                'region' => $_ENV['REGION'],
                 'version' => 'latest',
                 'credentials' => [
-                    'key'    => $_ENV['AWS_ACCESS_KEY_ID'],
-                    'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'],
+                    'key' => $_ENV['KEY'],
+                    'secret' => $_ENV['SECRET'],
                 ]
             ]);
-            
+
             $marshaler = new Marshaler();
             
             // Query DynamoDB for user
             $result = $dynamoDb->getItem([
-                'TableName' => 'Users',
+                'TableName' => 'Customer',
                 'Key' => $marshaler->marshalItem([
-                    'email' => $email
+                    'c_id' => hash("sha256", $email)
                 ])
             ]);
-            
+            //Search for password hash value
             if (!empty($result['Item'])) {
-                $storedPassword = $marshaler->unmarshalValue($result['Item']['password']);
-                
+                $storedPassword = $marshaler->unmarshalValue($result['Item']['passwd']);
+                //Match password with hash
+                //If matching, user is authenticated and session starts
                 if (password_verify($password, $storedPassword)) {
                     session_start();
-                    $_SESSION['loggedin'] = true;
+                    $_SESSION['login'] = true;
                     $_SESSION['email'] = $email;
                     header('Location: DashboardPage.php');
                     exit;
                 } else {
                     $errorMsg['auth'] = "Invalid email or password";
                 }
-            } else {
-                $errorMsg['auth'] = "Invalid email or password";
             }
+
+            else {
+                    $errorMsg['auth'] = "Invalid email or password";
+                }
         } catch (DynamoDbException $e) {
             $errorMsg['system'] = "Login service unavailable. Please try again later.";
             error_log("DynamoDB Error: " . $e->getMessage());
@@ -80,10 +84,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     }
     
     $showBothErrors = true;
-}
-
-if ($_SESSION['loggedin'] ?? false) {
-    header('Location: LoginPage.php');
-    exit;
 }
 ?>
