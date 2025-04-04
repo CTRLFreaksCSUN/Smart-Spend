@@ -78,17 +78,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                         exit;
                     } 
                     else {
-                        // Email not verified, show error
-                        $errorMsg['auth'] = "Please verify your email before logging in. Check your inbox or register again.";
+                        // Email not verified, set up verification page redirect
+                        $userData = $marshaler->unmarshalItem($result['Item']);
+                        
+                        // Generate a new verification code if needed
+                        $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
+                        $expirationTime = time() + (24 * 60 * 60); // 24 hours from now
+                        
+                        // Update the verification code in the database
+                        $dynamoDb->updateItem([
+                            'TableName' => 'Customer',
+                            'Key' => $marshaler->marshalItem([
+                                'c_id' => hash("sha256", $email)
+                            ]),
+                            'UpdateExpression' => 'SET verification_code = :code, code_expiration = :expiry',
+                            'ExpressionAttributeValues' => $marshaler->marshalItem([
+                                ':code' => $verificationCode,
+                                ':expiry' => $expirationTime
+                            ])
+                        ]);
+                        
+                        // Set up session for verification page
+                        $_SESSION['pending_verification_email'] = $email;
+                        $_SESSION['verification_code'] = $verificationCode;
+                        $_SESSION['user_fname'] = $marshaler->unmarshalValue($result['Item']['Fname']);
+                        
+                        // Redirect to verify page - using RegisterPage.php since it has the verification UI
+                        header('Location: RegisterPage.php');
+                        exit;
                     }
                 } else {
                     $errorMsg['auth'] = "Invalid email or password";
                 }
             }
-
             else {
-                    $errorMsg['auth'] = "Invalid email or password";
-                }
+                $errorMsg['auth'] = "Invalid email or password";
+            }
         } catch (DynamoDbException $e) {
             $errorMsg['system'] = "Login service unavailable. Please try again later.";
             error_log("DynamoDB Error: " . $e->getMessage());
