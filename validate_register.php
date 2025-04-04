@@ -166,7 +166,8 @@ try {
          'secret' => $secret
          ),
       'region' => $region,
-      'version' => 'latest'
+      'version' => 'latest',
+      'scheme' => 'http'
    ));
    //Create collection (if does not exist)
    $db = createCollection($dbClient);

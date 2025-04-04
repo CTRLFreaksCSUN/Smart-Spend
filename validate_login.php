@@ -43,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             $dynamoDb = new DynamoDbClient([
                 'region' => $_ENV['REGION'],
                 'version' => 'latest',
+                'scheme' => 'http',
                 'credentials' => [
                     'key' => $_ENV['KEY'],
                     'secret' => $_ENV['SECRET'],
