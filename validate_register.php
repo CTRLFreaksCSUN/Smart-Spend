@@ -1,4 +1,8 @@
 <?php
+// Add session_start() if not already at the top of the file
+if (session_status() === PHP_SESSION_NONE) {
+   session_start();
+}
 use Aws\DynamoDb\Marshaler;
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Exception\DynamoDbException;
@@ -31,10 +35,11 @@ if ($validated && empty($errorMsg)) {
    $dbClient = connectToDatabase($key, $secret, $region);
    $newAcc = createAccount($dbClient, $fName, $mName, $lName, $email, $password);
    
-   //Verify that there are no field errors before signing up
-   if ($newAcc && empty($errorMsg)) {
-      header("Location: ContinuedRegPage.php");
-      exit(); 
+    //Verify that there are no field errors before signing up
+    if ($newAcc && empty($errorMsg)) {
+      // Instead of redirecting to ContinuedRegPage.php, let the page reload to show verification UI
+      // The session vars set in createAccount will trigger the verification UI
+      return;
    }
 }
 
@@ -196,6 +201,10 @@ function createAccount($dbClient, $fName, $mName, $lName, $email, $password) {
       'TableName' => "Customer"
    ]);
    if (empty($item["Item"])) {
+      // Generate a verification code
+      $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
+       // Set expiration time (24 hours from now)
+      $expirationTime = time() + (24 * 60 * 60);
       $dbClient->putItem([
          'Item' => [
             'Fname' => [
@@ -215,10 +224,23 @@ function createAccount($dbClient, $fName, $mName, $lName, $email, $password) {
             ],
             'c_id' => [
                'S' => hash('sha256', $email)
-            ]
+            ],
+            'verification_code' => [
+               'S' => $verificationCode
+            ],
+            'is_verified' => [
+               'BOOL' => false
+            ],
+            'code_expiration' => [
+            'N' => (string)$expirationTime
+         ]
          ],
          'TableName' => "Customer"
       ]);
+      // Store email and verification code in session
+      $_SESSION['pending_verification_email'] = $email;
+      $_SESSION['verification_code'] = $verificationCode;
+      $_SESSION['user_fname'] = $fName;
       return true;
    } 
    $GLOBALS["errorMsg"] = "User already exists!";

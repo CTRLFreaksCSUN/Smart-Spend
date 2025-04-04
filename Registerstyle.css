@@ -240,3 +240,38 @@
 	  font-size: 1.5rem;
 	}
   }
+/* new
+/* Verification container styling additions */
+.verification-container {
+	text-align: center;
+  }
+  
+  .verification-container p {
+	color: var(--text-light);
+	margin-bottom: 15px;
+  }
+  
+  .verification-code-input input {
+	letter-spacing: 5px;
+	text-align: center;
+	font-size: 1.2rem;
+  }
+  
+  .verification-code-input input:focus + label,
+  .verification-code-input input:not(:placeholder-shown) + label {
+	top: -0.5rem;
+	left: 1rem;
+	font-size: 0.8rem;
+	color: var(--primary-color);
+  }
+  
+  .btn-secondary {
+	background-color: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: var(--text-light);
+  }
+  
+  .btn-secondary:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	transform: translateY(-2px);
+  }

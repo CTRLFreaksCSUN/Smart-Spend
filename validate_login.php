@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             $result = $dynamoDb->getItem([
                 'TableName' => 'Customer',
                 'Key' => $marshaler->marshalItem([
-                    'c_id' => hash("sha256", $email)
+                    'c_id' => hash("sha256", $email) //hash email as primary key see if key is found in db
                 ])
             ]);
             //Search for password hash value
@@ -64,11 +64,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 //Match password with hash
                 //If matching, user is authenticated and session starts
                 if (password_verify($password, $storedPassword)) {
-                    session_start();
-                    $_SESSION['login'] = true;
-                    $_SESSION['email'] = $email;
-                    header('Location: DashboardPage.php');
-                    exit;
+                    // Check if email is verified
+                    $isVerified = isset($result['Item']['is_verified']) ? 
+                                 $marshaler->unmarshalValue($result['Item']['is_verified']) : 
+                                 false;
+                    
+                    if ($isVerified) {
+                        // Email is verified, allow login
+                        $_SESSION['login'] = true;
+                        $_SESSION['email'] = $email;
+                        header('Location: DashboardPage.php');
+                        exit;
+                    } 
+                    else {
+                        // Email not verified, show error
+                        $errorMsg['auth'] = "Please verify your email before logging in. Check your inbox or register again.";
+                    }
                 } else {
                     $errorMsg['auth'] = "Invalid email or password";
                 }
