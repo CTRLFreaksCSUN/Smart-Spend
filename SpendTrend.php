@@ -12,15 +12,57 @@ function isServerRunning() {
     return $response !== false;
 }
 
-if (!isServerRunning()) {
-    // Start the server
+function startPythonServer() {
     $pythonScript = __DIR__ . '/spend_trend.py';
+    
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        pclose(popen('start /B python "' . $pythonScript . '"', 'r'));
+        // Windows - we'll store the process ID
+        $command = 'wmic process call create "python \"' . $pythonScript . '\"" | find "ProcessId"';
+        $output = shell_exec($command);
+        preg_match('/\d+/', $output, $matches);
+        if (!empty($matches)) {
+            $_SESSION['python_server_pid'] = (int)$matches[0];
+            return true;
+        }
     } else {
-        exec('python3 "' . $pythonScript . '" > /dev/null 2>&1 &');
+        // Linux/Mac - store the PID
+        $command = 'python3 "' . $pythonScript . '" > /dev/null 2>&1 & echo $!';
+        $pid = (int)shell_exec($command);
+        if ($pid > 0) {
+            $_SESSION['python_server_pid'] = $pid;
+            return true;
+        }
     }
-    sleep(2); // Give it time to start
+    
+    return false;
+}
+
+function stopPythonServer() {
+    if (!empty($_SESSION['python_server_pid'])) {
+        $pid = $_SESSION['python_server_pid'];
+        
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            // Windows
+            shell_exec("taskkill /PID $pid /F");
+        } else {
+            // Linux/Mac
+            shell_exec("kill $pid");
+        }
+        
+        unset($_SESSION['python_server_pid']);
+    }
+}
+
+// Register shutdown function
+register_shutdown_function('stopPythonServer');
+
+if (!isServerRunning()) {
+    if (startPythonServer()) {
+        sleep(2); // Give it time to start
+    } else {
+        // Handle error - couldn't start server
+        error_log("Failed to start Python server");
+    }
 }
 
 
