@@ -1,6 +1,29 @@
 <?php
 // smartspend.php
 session_start();
+
+function isServerRunning() {
+    $ch = curl_init('http://localhost:5000/calc_spending');
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    return $response !== false;
+}
+
+if (!isServerRunning()) {
+    // Start the server
+    $pythonScript = __DIR__ . '/spend_trend.py';
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        pclose(popen('start /B python "' . $pythonScript . '"', 'r'));
+    } else {
+        exec('python3 "' . $pythonScript . '" > /dev/null 2>&1 &');
+    }
+    sleep(2); // Give it time to start
+}
+
+
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
     'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
