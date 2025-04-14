@@ -4,66 +4,18 @@ session_start();
 
 function isServerRunning() {
     $ch = curl_init('http://localhost:5000/calc_spending');
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    return $response !== false;
+    return curl_exec($ch) !== false;
 }
-
-function startPythonServer() {
-    $pythonScript = __DIR__ . '/spend_trend.py';
-    
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        // Windows - we'll store the process ID
-        $command = 'wmic process call create "python \"' . $pythonScript . '\"" | find "ProcessId"';
-        $output = shell_exec($command);
-        preg_match('/\d+/', $output, $matches);
-        if (!empty($matches)) {
-            $_SESSION['python_server_pid'] = (int)$matches[0];
-            return true;
-        }
-    } else {
-        // Linux/Mac - store the PID
-        $command = 'python3 "' . $pythonScript . '" > /dev/null 2>&1 & echo $!';
-        $pid = (int)shell_exec($command);
-        if ($pid > 0) {
-            $_SESSION['python_server_pid'] = $pid;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-function stopPythonServer() {
-    if (!empty($_SESSION['python_server_pid'])) {
-        $pid = $_SESSION['python_server_pid'];
-        
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows
-            shell_exec("taskkill /PID $pid /F");
-        } else {
-            // Linux/Mac
-            shell_exec("kill $pid");
-        }
-        
-        unset($_SESSION['python_server_pid']);
-    }
-}
-
-// Register shutdown function
-register_shutdown_function('stopPythonServer');
 
 if (!isServerRunning()) {
-    if (startPythonServer()) {
-        sleep(2); // Give it time to start
-    } else {
-        // Handle error - couldn't start server
-        error_log("Failed to start Python server");
-    }
+    // Start the server from its correct directory
+    $command = 'cd /d C:\xampp\htdocs\test2\Smart-Spend-main && start /B python spend_trend.py';
+    pclose(popen($command, 'r'));
+    sleep(2);
 }
+
 
 
 $current_page = basename($_SERVER['PHP_SELF']);
