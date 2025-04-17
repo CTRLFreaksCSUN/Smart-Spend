@@ -1,4 +1,5 @@
 <?php
+session_start();
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $spendingData = [200, 300, 250, 400, 350, 450];
 
@@ -23,7 +24,7 @@ $predictedData = [300, 350, 400, 450, 500, 550];
     <title>Smart Spend - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="DashboardStyle.css">
-    <link rel="stylesheet" href="bubbleChatStyle.css"> <!-- Added chat bubble CSS -->
+    <link rel="stylesheet" href="bubbleChatStyle.css"> 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -43,11 +44,15 @@ $predictedData = [300, 350, 400, 450, 500, 550];
             </ul>
         </nav>
         
-        <div class="profile-section">
-            <div class="profile-dropdown">
-                <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
-                <span class="profile-name">User</span>
-                <i class="fas fa-chevron-down dropdown-icon"></i>
+        <div class="profile-dropdown" id="profileDropdown">
+            <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
+            <span class="profile-name">
+                <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?>
+            </span>
+            <i class="fas fa-chevron-down dropdown-icon"></i>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="ProfilePage.php" class="dropdown-item">View Profile</a>
+                <a href="LoginPage.php" class="dropdown-item">Sign Out</a>
             </div>
         </div>
     </div>
@@ -233,6 +238,18 @@ spendingCard.addEventListener('click', function(e) {
 
 <!-- Chat Bubble JavaScript -->
 <script src="bubbleChat.js"></script>
+
+<script>
+document.getElementById('profileDropdown').addEventListener('click', function (e) {
+    e.stopPropagation(); 
+    this.classList.toggle('show');
+});
+
+window.addEventListener('click', function () {
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.classList.remove('show');
+});
+</script>
 
 </body>
 </html>
