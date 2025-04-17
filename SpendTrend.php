@@ -1,6 +1,23 @@
 <?php
 // smartspend.php
 session_start();
+
+function isServerRunning() {
+    $ch = curl_init('http://localhost:5000/calc_spending');
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    return curl_exec($ch) !== false;
+}
+
+if (!isServerRunning()) {
+    // Start the server from its correct directory
+    $command = 'cd /d C:\xampp\htdocs\test2\Smart-Spend-main && start /B python spend_trend.py';
+    pclose(popen($command, 'r'));
+    sleep(2);
+}
+
+
+
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
     'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
