@@ -240,8 +240,8 @@ function detect_anomalies($data) {
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'settings.php') ? 'active' : '' ?>" href="settings.php">
-                                <i class="fas fa-cog me-1"></i> Settings
+                            <a class="nav-link <?= ($current_page == 'ProfilePage.php') ? 'active' : '' ?>" href="ProfilePage.php">
+                                <i class="fas fa-cog me-1"></i> Profile
                             </a>
                         </li>
                     </ul>
