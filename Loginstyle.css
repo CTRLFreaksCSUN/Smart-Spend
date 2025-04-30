@@ -19,8 +19,43 @@
 	box-sizing: border-box;
   }
   
+  aside {
+	background: rgba(255, 255, 255, 0.1);
+	font-family: 'Montserrat', sans-serif;
+	backdrop-filter: var(--glass-blur);
+	border-radius: 16px;
+	padding: 2.5rem;
+	box-shadow: var(--shadow);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	width: 250px;
+	padding: 30px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+  }
+
+  aside nav a {
+	color: white;
+	font-family: 'Montserrat', sans-serif;
+	text-decoration: none;
+	font-size: 1.1rem;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0;
+	transition: all 0.3s ease;
+  }
+  
+  aside nav a:hover {
+	color: var(--accent-color);
+  }
+
   body {
-	font-family: 'Poppins', sans-serif;
+	font-family: 'Montserrat', sans-serif;
 	color: var(--text-color);
 	line-height: 1.6;
 	background-image: url('https://img.freepik.com/premium-vector/abstract-water-background-wave-illustration-art-concept_114588-20.jpg');
@@ -96,6 +131,13 @@
   
   .login-section {
 	flex: 1;
+  }
+  
+  .center-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	height: 100%;
   }
   
   .glass-card {
@@ -280,7 +322,6 @@
 	100% { transform: translateY(0px); }
   }
   
-  /* Responsive design */
   @media (max-width: 768px) {
 	.content-wrapper {
 	  flex-direction: column;
@@ -300,7 +341,7 @@
 	}
   }
 .input-with-icon i {
-	color: var(--accent-color); /* Uses existing light blue accent color */
+	color: var(--accent-color);
   }
 
 
@@ -328,3 +369,106 @@
 .error-message i {
     font-size: 1.2rem;
 }
+
+.mainSplash {
+	margin-left: 220px;
+	font-family: 'Montserrat', sans-serif;
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+  }
+
+  .section {
+	background: rgba(255, 255, 255, 0.1);
+	font-family: 'Montserrat', sans-serif;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 16px;
+	padding: 2rem;
+	color: white;
+	max-width: 900px;
+	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+	margin: auto;
+  }
+
+  .section img {
+	margin-top: 1rem;
+	max-width: 100%;
+	border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+	main {
+	  margin-left: 0;
+	  padding: 1rem;
+	}
+	aside {
+	  width: 100%;
+	  position: relative;
+	}
+  }
+
+  .slideshow-container {
+	position: relative;
+	max-width: 100%;
+	margin: 2rem auto;
+	border-radius: 12px;
+	overflow: hidden;
+  }
+  
+  .slide {
+	display: none;
+	position: relative;
+  }
+  
+  .slide img {
+	width: 800%;
+	height: 536px; /* Or any consistent height you want */
+	object-fit: contain; /* Ensures image fills the box without stretching */
+	border-radius: 8px;
+  }
+  
+  .caption {
+	color: #fff;
+	font-size: 1rem;
+	padding: 12px;
+	position: absolute;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	width: 100%;
+	text-align: center;
+	font-family: 'Montserrat', sans-serif;
+  }
+  
+  .prev, .next {
+	cursor: pointer;
+	position: absolute;
+	top: 50%;
+	padding: 16px;
+	color: white;
+	font-weight: bold;
+	font-size: 24px;
+	transition: 0.3s ease;
+	border-radius: 0 3px 3px 0;
+	user-select: none;
+	background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .next {
+	right: 0;
+	border-radius: 3px 0 0 3px;
+  }
+  
+  .prev:hover, .next:hover {
+	background: rgba(0, 0, 0, 0.6);
+  }
+  
+  .fade {
+	animation: fade 0.7s ease-in-out;
+  }
+  
+  @keyframes fade {
+	from { opacity: 0.4 }
+	to { opacity: 1 }
+  }

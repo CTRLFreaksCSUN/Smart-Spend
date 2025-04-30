@@ -16,12 +16,17 @@
   <div class="background-overlay"></div>
   
   <div class="container">
-    <header>
-      <div class="logo-container">
-        <img src="images/SmartSpendLogo.png" alt="Smart Spend" class="logo">
-        <h1>Smart Spend</h1>
-      </div>
-    </header>
+  <aside>
+    <div class="logo-title">
+      <img src="images/SmartSpendLogo.png" alt="Smart Spend Logo">
+      <h2>Smart Spend</h2>
+    </div>
+    <nav>
+      <a href="SplashPage.php#how"><i class="fas fa-lightbulb"></i> How to Use</a>
+      <a href="SplashPage.php#about"><i class="fas fa-users"></i> About the Creators</a>
+      <a href="LoginPage.php"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+    </nav>
+  </aside>
 
     <?php 
     $path = __DIR__; //get current directory
@@ -30,7 +35,7 @@
 
     <main class="content-wrapper">
       <div class="login-section">
-        <div class="login-card glass-card">
+        <div class="login-card glass-card center-content">
           <h2>Welcome Back</h2>
           <p class="subtitle">Sign in to your financial dashboard</p>
           
