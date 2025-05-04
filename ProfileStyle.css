@@ -381,6 +381,67 @@
     color: white;
 }
 
+
+.change-password {
+    background-color: white;
+    color: #0d47a1;
+    display:none;
+    height: fit-content;
+    width:fit-content;
+    position: absolute;
+    top: 25%;
+    left: 45%;
+}
+
+.change-password h1 {
+    font-size: 2em;
+    margin: 1em;
+}
+
+.change-password div {
+    border-style: solid;
+    border-radius: 10%;
+    display: inline-flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    padding: 0.5rem;
+    height: 30rem;
+    width: 24rem;
+    justify-items: center;
+    align-items: center;
+}
+
+.change-password label {
+    margin:1rem;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.change-password input {
+    width: 14rem;
+    padding: 0.2rem;
+    font-size: 1em;
+}
+
+.change-password input[type='submit'] {
+    width: 6rem;
+}
+
+.change-password section {
+    display:flex;
+    flex-direction:row;
+    gap:5rem;
+    position: absolute;
+    bottom: 5%;
+}
+
+.change-password .error {
+    background-color: rgba(247, 83, 83, 0.2);
+    color: rgb(245, 9, 9);
+    padding: 0.5rem;
+}
+
+
 /* Animations */
 @keyframes fadeInUp {
     from {

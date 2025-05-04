@@ -49,14 +49,25 @@ $predictedData = [300, 350, 400, 450, 500, 550];
             <span class="profile-name">
                 <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?>
             </span>
+            <form method="POST">
             <i class="fas fa-chevron-down dropdown-icon"></i>
             <div class="dropdown-menu" id="dropdownMenu">
                 <a href="ProfilePage.php" class="dropdown-item">View Profile</a>
-                <a href="LoginPage.php" class="dropdown-item">Sign Out</a>
+                <a class="dropdown-item"><button type='submit' style="background-color:rgba(0,0,0,0); border-style:none; width:10rem; height:2rem; text-align:left; cursor:pointer;" name="logout" >Sign Out</button></a>
             </div>
+           </form>
         </div>
     </div>
 </header>
+
+<?php 
+    if (isset($_POST['logout'])) {
+        session_unset();
+        header('Location: LoginPage.php');
+        exit();
+    }
+?>
+
 <div class="background"></div>
 
 <main class="card-grid">

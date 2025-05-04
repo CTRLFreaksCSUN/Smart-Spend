@@ -409,3 +409,36 @@ header h1 {
         padding: 0.5rem;
     }
 }
+
+
+.confirm-box {
+    background-color: white;
+    width:15rem;
+    height:8rem;
+    padding: 1.5rem;
+    z-index: 10;
+    border-style: solid;
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    left:50%;
+    margin: auto;  
+}
+
+.confirm-box section {
+    display: inline-flex;
+    flex-direction: row;
+}
+
+.confirm-box button {
+    background-color:white;
+    padding: 1rem 1.8rem 1.5rem;
+    display: inline-flex;
+    justify-content: center;
+    align-content:center;
+    width:1.5rem;
+    height:0.5rem;
+    cursor:pointer;
+    margin:1rem;
+    font-size: 1em;
+}
