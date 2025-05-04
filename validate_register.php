@@ -242,6 +242,9 @@ function createAccount($dbClient, $fName, $mName, $lName, $email, $password) {
       $_SESSION['pending_verification_email'] = $email;
       $_SESSION['verification_code'] = $verificationCode;
       $_SESSION['user_fname'] = $fName;
+      $_SESSION['user_lastname'] =$lName;
+      $_SESSION['user_middlename'] = $mName;
+      $_SESSION['email'] = $email;
       return true;
    } 
    $GLOBALS["errorMsg"] = "User already exists!";

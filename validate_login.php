@@ -74,6 +74,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                         // Email is verified, allow login
                         $_SESSION['login'] = true;
                         $_SESSION['email'] = $email;
+                        $_SESSION['user_fname'] = $marshaler->unmarshalValue($result['Item']['Fname']);
+                        $_SESSION['user_lastname'] = $marshaler->unmarshalValue($result['Item']['Lname']);
+                        $_SESSION['user_middlename'] = $marshaler->unmarshalValue($result['Item']['Mname']);
                         header('Location: DashboardPage.php');
                         exit;
                     } 

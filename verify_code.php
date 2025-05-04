@@ -93,7 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verification_code'])) 
             // Clear verification session data
             unset($_SESSION['pending_verification_email']);
             unset($_SESSION['verification_code']);
-            unset($_SESSION['user_fname']);
             
             // Set success message and create login session
             $_SESSION['verification_success'] = true;

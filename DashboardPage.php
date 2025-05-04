@@ -1,5 +1,24 @@
 <?php
 session_start();
+
+use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Exception\DynamoDbException;
+use Aws\DynamoDb\Marshaler;
+use Dotenv\Dotenv;
+
+require __DIR__.'/vendor/autoload.php';
+$env = Dotenv::createImmutable(__DIR__);
+$env->load();
+
+getExpenses();
+$util = intval($_SESSION['util']);
+$food = intval($_SESSION['food']);
+$shop = intval($_SESSION['shopping']);
+$transp = intval($_SESSION['transport']);
+$en = intval($_SESSION['entertain']);
+$med = intval($_SESSION['medical']);
+$rent = intval($_SESSION['rent']);
+
 $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $spendingData = [200, 300, 250, 400, 350, 450];
 
@@ -9,12 +28,51 @@ $actualData = [480, 530, 560, 610, 590, 640];
 $incomeData = [700, 720, 750, 780, 760, 800];
 $expenseData = [500, 540, 580, 600, 590, 620];
 
-$categoryLabels = ['Rent', 'Groceries', 'Shopping', 'Transport', 'Entertainment'];
-$categoryData = [40, 25, 15, 10, 10];
+$categoryLabels = ['Property', 'Utilities', 'Medical', 'Food', 'Shopping', 'Transport', 'Entertainment'];
+$categoryData = [$rent, $util, $med, $food, $shop, $transp, $en];
 
 $savingsData = [150, 180, 200, 220, 250, 300];
 
 $predictedData = [300, 350, 400, 450, 500, 550];
+
+// Extract user expenses from database
+function getExpenses() {
+    try {
+        $client = new DynamoDbClient([
+            'credentials' => [
+                'key' => $_ENV['KEY'],
+                'secret' => $_ENV['SECRET']
+            ],
+            'region' => $_ENV['REGION'],
+            'version' => 'latest',
+            'scheme' => 'http'
+        ]);
+
+        $marshaler = new Marshaler();
+        $query = $client->getItem([
+            'TableName' => 'Finance',
+            'Key' => $marshaler->marshalItem([
+                'c_id' => hash('sha256', $_SESSION['email'])
+            ])
+            ]);
+        
+        if (!empty($query)) {
+            $expenses = $marshaler->unmarshalValue($query['Item']['expenses']);
+
+            $_SESSION['rent'] = $expenses['property'];
+            $_SESSION['medical'] = $expenses['medical'];
+            $_SESSION['food'] = $expenses['food'];
+            $_SESSION['util'] = $expenses['utilities'];
+            $_SESSION['shopping'] = $expenses['shopping'];
+            $_SESSION['transport'] = $expenses['transport'];
+            $_SESSION['entertain'] = $expenses['entertainment'];
+        }
+    }
+    catch(Exception $err) {
+        echo "Database error: " . $err;
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +105,7 @@ $predictedData = [300, 350, 400, 450, 500, 550];
         <div class="profile-dropdown" id="profileDropdown">
             <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
             <span class="profile-name">
-                <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?>
+                <?php echo isset($_SESSION['user_fname']) ? htmlspecialchars($_SESSION['user_fname']) : 'User'; ?>
             </span>
             <form method="POST">
             <i class="fas fa-chevron-down dropdown-icon"></i>
@@ -211,7 +269,7 @@ spendingCard.addEventListener('click', function(e) {
             datasets: [{
                 label: 'Categories',
                 data: <?php echo json_encode($categoryData); ?>,
-                backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4caf50', '#ff9800']
+                backgroundColor: ['#ff6384', '#4caf50', '#FFC0CB', '#ffce56', '#36a2eb', '#800080', '#ff9800']
             }]
         },
         options: { responsive: true }

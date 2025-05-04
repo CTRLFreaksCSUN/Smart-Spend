@@ -12,7 +12,7 @@ $env->load();
 
 // Sample user data
 $user = [
-    'name' => $_SESSION['username'] . " " . $_SESSION['user_middlename'] . " " . $_SESSION['user_lastname'],
+    'name' => $_SESSION['user_fname'] . " " . $_SESSION['user_middlename'] . " " . $_SESSION['user_lastname'],
     'email' => $_SESSION['email'],
     'title' => '',
     'avatar' => 'images/ProfilePic.png',
@@ -62,15 +62,9 @@ $user = [
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="DashboardPage.php">
                         <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <div class="nav-icon"><i class="fas fa-wallet"></i></div>
-                        <span>Accounts</span>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
@@ -78,12 +72,6 @@ $user = [
                         <div class="nav-icon"><i class="fas fa-bell"></i></div>
                         <span>Notifications</span>
                         <span class="nav-badge">3</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <div class="nav-icon"><i class="fas fa-cog"></i></div>
-                        <span>Settings</span>
                     </a>
                 </li>
                 <li>

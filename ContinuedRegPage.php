@@ -1,4 +1,5 @@
 <?php  
+  session_start();
   use Aws\DynamoDb\DynamoDbClient;
   use Aws\DynamoDb\Marshaler;
   use Aws\DynamoDb\Exception\DynamoDbException;
@@ -14,7 +15,7 @@
   $endPt = $_ENV["ENDPOINT"];
   $region = $_ENV["REGION"];
   $secret = $_ENV["SECRET"];
-  
+
   // Connect to the database first
   $client = connectToDatabase($key, $secret, $region);
   
@@ -70,10 +71,6 @@
       $new_collec = $dbClient->createTable([
         'AttributeDefinitions' => [
           [
-             'AttributeName' => 'f_id',
-             'AttributeType' => 'S'
-          ],
-          [
              'AttributeName' => 'c_id',
              'AttributeType' => 'S'
           ]
@@ -82,12 +79,8 @@
         'DeletionProtectionEnabled' => false,
         'KeySchema' => [
           [
-             'AttributeName' => 'f_id',
-             'KeyType' => 'HASH'  // Partition key
-          ],
-          [
              'AttributeName' => 'c_id',
-             'KeyType' => 'RANGE'  // Sort key (changed from HASH to RANGE)
+             'KeyType' => 'HASH' 
           ]
         ],
         'OnDemandThroughput' => [
@@ -167,23 +160,29 @@
       $income = $_POST['income'];
       $savingsGoals = isset($_POST['savings_goals']) ? $_POST['savings_goals'] : [];
       $budget = isset($_POST['budget']) ? $_POST['budget'] : 'Flexible';
-      $expenses = isset($_POST['expenses']) ? $_POST['expenses'] : [];
+      $expenseCats = isset($_POST['expenses']) ? $_POST['expenses'] : [];
       
-      // Generate unique IDs
-      $financeId = uniqid('fin_');
-      $customerId = uniqid('cust_');
+      $expenses = [];
+      $expenses['entertainment'] = isset($_POST['entertain']) ? (int)$_POST['entertain'] : (int)0;
+      $expenses['property'] = isset($_POST['rent']) ? (int)$_POST['rent'] : (int)0;
+      $expenses['food'] = isset($_POST['food']) ? (int)$_POST['food'] : (int)0;
+      $expenses['medical'] = isset($_POST['medical']) ? (int)$_POST['medical'] : (int)0;
+      $expenses['shopping'] = isset($_POST['shopping']) ? (int)$_POST['shopping'] : (int)0;
+      $expenses['transport'] = isset($_POST['transport']) ? (int)$_POST['transport'] : (int)0;
+      $expenses['utilities'] = isset($_POST['util']) ? (int)$_POST['util'] : (int)0;
       
       // Create a marshaler to convert PHP arrays to DynamoDB format
       $marshaler = new Marshaler();
-      
+      $customerId = hash('sha256', $_SESSION['email']);
+
       // Prepare item data
       $item = [
-        'f_id' => $financeId,
         'c_id' => $customerId,
         'income' => (int)$income,
         'savings_goals' => $savingsGoals,
         'budget_type' => $budget,
-        'expense_categories' => $expenses,
+        'expense_categories' => $expenseCats,
+        'expenses' => $expenses,
         'created_at' => date('Y-m-d H:i:s')
       ];
       
@@ -205,6 +204,14 @@
       error_log($e->getMessage(), 0);
       $error = "There was an error saving your information. Please try again.";
     }
+  }
+?>
+
+<?php
+  if (isset($_POST['cancel'])) {
+    session_unset();
+    header('Location: LoginPage.php');
+    exit();
   }
 ?>
 
@@ -240,7 +247,7 @@
           <!-- Monthly Income -->
           <div class="form-group">
             <span class="section-title">Monthly Income</span>
-            <input type="number" id="income" name="income" placeholder="Enter your monthly income" required class="styled-input">
+            <input type="number" id="income" name="income" placeholder="Enter your monthly income" class="styled-input">
           </div>
 
           <!-- Savings Goals -->
@@ -268,15 +275,26 @@
           </div>
 
           <!-- Expense Categories -->
+           <form method="POST" onsubmit="<?php htmlspecialchars($_SERVER['PHP_SELF']);?>">
           <span class="section-title">Expense Categories</span>
-          <div class="checkbox-group">
-            <label><input type="checkbox" name="expenses[]" value="Food"> Food & Dining</label>
-            <label><input type="checkbox" name="expenses[]" value="Rent"> Housing</label>
-            <label><input type="checkbox" name="expenses[]" value="Transportation"> Transportation</label>
-            <label><input type="checkbox" name="expenses[]" value="Utilities"> Utilities</label>
-            <label><input type="checkbox" name="expenses[]" value="Shopping"> Shopping</label>
-            <label><input type="checkbox" name="expenses[]" value="Entertainment"> Entertainment</label>
+            <label>
+              <div class='checkbox-inputbox'>
+              <input type="checkbox" name="expenses[]" value="Food"> Food & Dining<input type='number' id='food'
+               name='food' value='<?php htmlspecialchars($_POST['food'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Rent"> Housing<input type='number' id='rent'
+             name='rent' value='<?php htmlspecialchars($_POST['rent'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Medical"> Medical<input type='number' id='medical' 
+            name='medical' value='<?php htmlspecialchars($_POST['medical'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Transportation"> Transportation<input type='number' id='transport' 
+            name='transport' value='<?php htmlspecialchars($_POST['transport'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Utilities"> Utilities<input type='number' id='util' 
+            name='util' value='<?php htmlspecialchars($_POST['util'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Shopping"> Shopping<input type='number' id='shopping' 
+            name='shopping' value='<?php htmlspecialchars($_POST['shopping'] ?? 0);?>'/></label>
+            <label><input type="checkbox" name="expenses[]" value="Entertainment"> Entertainment<input type='number' id='entertain' 
+            name='entertain' value='<?php htmlspecialchars($_POST['entertain'] ?? 0);?>'/></label>
           </div>
+        </form>
 
           <!-- Custom Categories -->
           <div id="custom-expenses" class="custom-input-wrapper">

@@ -191,6 +191,16 @@
   input[type="radio"]:checked {
     background-color: var(--light-blue);
   }
+
+  
+  .checkbox-inputbox input[type='number'] {
+    display: none;
+  }
+
+  .checkbox-inputbox input[type='checkbox']:checked ~ input[type='number'] {
+    display: flex;
+    flex-direction:column;
+  }
   
   input[type="checkbox"]:checked::after, 
   input[type="radio"]:checked::after {
