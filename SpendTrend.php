@@ -2,6 +2,14 @@
 // smartspend.php
 session_start();
 
+use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Marshaler;
+use Dotenv\Dotenv;
+
+require __DIR__.'/vendor/autoload.php';
+$env = Dotenv::createImmutable(__DIR__);
+$env->load();
+
 function isServerRunning() {
     $ch = curl_init('http://localhost:5000/calc_spending');
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
@@ -11,7 +19,7 @@ function isServerRunning() {
 
 if (!isServerRunning()) {
     // Start the server from its correct directory
-    $command = 'cd /d C:\xampp\htdocs\test2\Smart-Spend-main && start /B python spend_trend.py';
+    $command = 'cd /d C:\xampp\htdocs\SmartSpendServer && start /B python spend_trend.py';
     pclose(popen($command, 'r'));
     sleep(2);
 }
@@ -74,11 +82,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($_SESSION['spending_history'])) {
             $_SESSION['spending_history'] = [];
         }
-        
+
         $entry = $analytics;
         $entry['timestamp'] = date('Y-m-d H:i:s');
         array_unshift($_SESSION['spending_history'], $entry);
         $_SESSION['spending_history'] = array_slice($_SESSION['spending_history'], 0, 50);
+
+        try {
+            $conn = new DynamoDbClient([
+                'credentials' => [
+                    'key' => $_ENV['KEY'],
+                    'secret' => $_ENV['SECRET']
+                ],
+                'region' => $_ENV['REGION'],
+                'version' => 'latest',
+                'scheme' => 'http'
+            ]);
+
+            // creates collection if it does not exist
+            createHistoryCollection($conn);
+            $marshaler = new Marshaler();
+
+            $catDetails = [];
+            $spendingDist = [];
+            $data = [];
+            $types = ['gas', 'groceries', 'subscriptions', 'dining', 'entertainment', 'utilities'];
+            $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            $regress = [];
+            $forecasts = [];
+            $anomalies = [];
+
+            foreach($types as $t) {
+                $catDetails[$t]['total'] = $entry['by_category'][$t]['total'];
+                $catDetails[$t]['budget'] = $entry['by_category'][$t]['budget'];
+                $catDetails[$t]['percent'] = $entry['by_category'][$t]['percentage'];
+                $catDetails[$t]['average'] = $entry['by_category'][$t]['avg'];
+                $catDetails[$t]['trend'] = $entry['by_category'][$t]['trend'];
+
+                $spendingDist[$t] = $entry['spending_distribution'][$t];
+                
+                $regress[$t]['slope'] = $entry['regression'][$t]['slope'];
+                $regress[$t]['intercept'] = $entry['regression'][$t]['intercept'];
+                $regress[$t]['r_value'] = $entry['regression'][$t]['r_value'];
+                $regress[$t]['p_value'] = $entry['regression'][$t]['p_value'];
+                $regress[$t]['std_err'] = $entry['regression'][$t]['std_err'];
+                $regress[$t]['trend_line'] = $entry['regression'][$t]['trend_line'];
+
+                $forecasts[$t] = $entry['forecasts'][$t];
+                $anomalies[$t] = $entry['anomalies'][$t];
+
+                foreach($months as $ind => $m) {
+                    // Safely assign category value for the month
+                    if (isset($entry['historical']['data'][$t]) && is_array($entry['historical']['data'][$t])) {
+                        $data[$m][$t] = $entry['historical']['data'][$t][$ind] ?? null;
+                    } else {
+                        $data[$m][$t] = null;
+                    }
+                }
+            }
+
+            $history = [
+                'c_id' => hash('sha256', $_SESSION['email']),
+                'h_id' => uniqid(),
+                'categories' => $catDetails,
+                'total_spendings' => $entry['total_spent'],
+                'total_budget' => $entry['total_budget'],
+                'savings' => $entry['savings'],
+                'spending_distribution' => $spendingDist,
+                'monthly_data' => $data,
+                'regression' => $regress,
+                'recommendations' => $entry['recommendations'],
+                'forecasts' => $forecasts,
+                'anomalies' => $anomalies,
+                'timestamp' => $entry['timestamp']
+            ];
+            $marshaledEntity = $marshaler->marshalItem($history);
+            $action = $conn->putItem([
+                'TableName' => 'History',
+                'Item' => $marshaledEntity
+            ]);
+        }
+        catch (Exception $err) {
+            echo "Database Error: " . $err;
+        }
     }
 }
 
@@ -128,6 +214,58 @@ function detect_anomalies($data) {
     }
     
     return $anomalies;
+}
+
+function createHistoryCollection($client) {
+    try {    
+        try {
+         $client->describeTable(['TableName' => 'History']);
+         return true;
+        } catch(Exception $e) {
+            error_log($e, 0);
+        }
+        
+        $client->createTable([
+            'AttributeDefinitions' => [
+                [
+                    'AttributeName' => 'c_id',
+                    'AttributeType' => 'S'
+                ],
+                [
+                    'AttributeName' => 'h_id',
+                    'AttributeType' => 'S'
+                ]
+            ],
+            'BillingMode' => 'PAY_PER_REQUEST',
+            'DeletionProtectionEnabled' => false,
+            'KeySchema' => [
+                [
+                    'AttributeName' => 'c_id',
+                    'KeyType' => 'HASH'
+                ],
+                [
+                    'AttributeName' => 'h_id',
+                    'KeyType' => 'RANGE'
+                ]
+            ],
+            'OnDemandThroughput' => [
+                'MaxReadRequestUnits' => 25,
+                'MaxWriteRequestUnits' => 25
+            ],
+            'SSESpecification' => [
+                'Enabled' => false
+            ],
+            'StreamSpecification' => [
+                'StreamEnabled' => true,
+                'StreamViewType' => 'NEW_AND_OLD_IMAGES'
+            ],
+            'TableClass' => 'STANDARD',
+            'TableName' => 'History'
+        ]);
+    }
+    catch(Exception $dbErr) {
+        echo "Database error: " . $dbErr->getMessage();
+    }
 }
 ?>
 <!DOCTYPE html>
