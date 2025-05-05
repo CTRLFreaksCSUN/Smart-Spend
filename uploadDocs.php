@@ -1,9 +1,9 @@
 <?php
 // Handle file upload logic
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
-    $uploadDir = 'uploads/';
-    if (!file_exists($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    $uploadDir = 'uploads/'; //upload directory
+    if (!file_exists($uploadDir)) { 
+        mkdir($uploadDir, 0777, true); //makes new directory
     }
     
     $allowedTypes = [
@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="uploadDocsStyle.css">
     <link rel="stylesheet" href="bubbleChatStyle.css">
+    <link rel="stylesheet" href="extraction-styles.css">
 </head>
 <body>
     <div class="upload-container">
@@ -77,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
                     <p>Upload receipts, invoices, or bank statements for analysis</p>
                 </div>
                 
-                <form action="uploadDocs.php" method="POST" enctype="multipart/form-data" class="upload-form">
+                <form action="update-document.php" method="POST" enctype="multipart/form-data" class="upload-form">
                     <div class="file-filter">
                         <span>Filter by:</span>
                         <button type="button" class="filter-btn active" data-filter="all">All</button>
@@ -166,6 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script src="bubbleChat.js"></script>
+    <!-- Add the document processor script here -->
+    <script src="document-processor.js"></script>
     
     <script>
         // DOM Elements
@@ -371,55 +374,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
                 }
             });
         }
-        
-        // Form submission with progress
-        uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (fileInput.files.length === 0) {
-                alert('Please select at least one file to upload');
-                return;
-            }
-            
-            if (fileInput.files.length > 10) {
-                if (!confirm(`You're about to upload ${fileInput.files.length} files. Continue?`)) {
-                    return;
-                }
-            }
-            
-            const progressBar = document.createElement('div');
-            progressBar.className = 'upload-progress';
-            progressBar.innerHTML = `
-                <div class="progress-bar"></div>
-                <span class="progress-text">0%</span>
-            `;
-            this.appendChild(progressBar);
-            
-            const formData = new FormData(this);
-            const xhr = new XMLHttpRequest();
-            
-            xhr.upload.onprogress = function(e) {
-                const percent = Math.round((e.loaded / e.total) * 100);
-                progressBar.querySelector('.progress-bar').style.width = `${percent}%`;
-                progressBar.querySelector('.progress-text').textContent = `${percent}%`;
-            };
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    progressBar.innerHTML = `
-                        <div class="upload-complete">
-                            <i class="fas fa-check-circle"></i> Upload Complete!
-                        </div>
-                    `;
-                    // Refresh file list
-                    fileInput.value = '';
-                    updateFileList();
-                }
-            };
-            
-            xhr.open('POST', 'uploadDocs.php', true);
-            xhr.send(formData);
-        });
     </script>
 </body>
 </html>

@@ -1,0 +1,169 @@
+/* 
+ * Additional styles for receipt extraction functionality
+ * To be included along with your existing CSS
+ */
+
+/* Loading indicator */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 5px;
+    padding: 15px;
+    margin: 20px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+}
+
+.loading-indicator i {
+    margin-right: 10px;
+    color: var(--primary-color, #4a6fa5);
+    font-size: 18px;
+}
+
+/* Extraction results */
+.extraction-results {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+}
+
+.extraction-results h3 {
+    color: var(--secondary-color, #166088);
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 18px;
+}
+
+/* Results table */
+.extraction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.extraction-table th,
+.extraction-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.extraction-table th {
+    background-color: var(--light-color, #e9f1f7);
+    color: var(--dark-color, #333);
+    font-weight: 600;
+}
+
+.extraction-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Status indicators */
+.status-success {
+    color: var(--success-color, #28a745);
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-error {
+    color: var(--error-color, #dc3545);
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-info {
+    color: var(--primary-color, #4a6fa5);
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-success:before,
+.status-error:before,
+.status-info:before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+.status-success:before {
+    content: "\f00c";
+}
+
+.status-error:before {
+    content: "\f00d";
+}
+
+.status-info:before {
+    content: "\f129";
+}
+
+/* Extracted text toggle */
+.extracted-text-toggle {
+    margin-top: 10px;
+}
+
+.toggle-text-btn {
+    background-color: var(--light-color, #e9f1f7);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.toggle-text-btn:hover {
+    background-color: var(--primary-color, #4a6fa5);
+    color: white;
+}
+
+.extracted-text {
+    margin-top: 10px;
+}
+
+.extracted-text textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* OCR loading animation */
+.ocr-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 14px;
+    color: var(--dark-color, #333);
+}
+
+.ocr-loading:before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary-color, #4a6fa5);
+    border-radius: 50%;
+    margin-right: 10px;
+    animation: ocr-spin 1s linear infinite;
+}
+
+@keyframes ocr-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
