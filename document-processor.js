@@ -1,7 +1,7 @@
 /**
  * Document Processor
  * 
- * Uses Tesseract.js to extract text from receipt images
+ * Uses Tesseract.js to extract text from receipt images and PDFs
  * and sends to server for business name and amount extraction
  */
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     /**
-     * Process uploaded files to extract business name and total amount
+     * Process multiple files
      */
     function processUploadedFiles(files, paths, loadingIndicator) {
         // Skip if no files
@@ -110,11 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check file type
             const fileExt = fileName.split('.').pop().toLowerCase();
             
-            // For images, use OCR
-            if (['jpg', 'jpeg', 'png'].includes(fileExt)) {
+            // For images and PDFs, use OCR
+            if (['jpg', 'jpeg', 'png', 'pdf'].includes(fileExt)) {
                 // Get the full URL to the file
                 const fileUrl = getAbsolutePath(filePath);
-                console.log(`Processing image: ${fileName} (${fileUrl})`);
+                console.log(`Processing file with OCR: ${fileName} (${fileUrl})`);
                 
                 Tesseract.recognize(
                     fileUrl,
@@ -140,7 +140,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     processNextFile();
                 }).catch(error => {
                     console.error(`OCR error for ${fileName}:`, error);
-                    addResultRow(fileName, 'Error', 'Error', error.message, resultsContainer);
+                    
+                    // For PDFs, try server-side extraction as fallback if OCR fails
+                    if (fileExt === 'pdf') {
+                        console.log(`Falling back to server-side extraction for PDF: ${fileName}`);
+                        sendExtractRequest(fileName, filePath, "", resultsContainer);
+                    } else {
+                        addResultRow(fileName, 'Error', 'Error', error.message, resultsContainer);
+                    }
                     
                     // Process next file
                     fileIndex++;
@@ -183,14 +190,26 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Server response status:', response.status);
+            return response.text().then(text => {
+                try {
+                    console.log('Raw server response:', text);
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Error parsing JSON response:', e);
+                    console.log('Raw response was:', text);
+                    throw new Error('Invalid server response: ' + e.message);
+                }
+            });
+        })
         .then(data => {
             console.log(`Extraction result for ${fileName}:`, data);
             
             if (data.status === 'success') {
                 addResultRow(fileName, data.business, data.amount, 'Processed', resultsContainer);
             } else {
-                addResultRow(fileName, 'Unknown', 0, data.message, resultsContainer);
+                addResultRow(fileName, data.business || 'Unknown', data.amount || 0, data.message || 'Error', resultsContainer);
             }
         })
         .catch(error => {
