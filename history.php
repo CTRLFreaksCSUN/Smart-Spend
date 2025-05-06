@@ -1,5 +1,14 @@
 <?php
 // history.php
+use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Exception\DynamodDbException;
+use Aws\DynamoDb\Marshaler;
+use Dotenv\Dotenv;
+
+require __DIR__.'/vendor/autoload.php';
+$env = Dotenv::createImmutable(__DIR__);
+$env->load();
+
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
     'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
@@ -18,23 +27,63 @@ if (isset($_POST['logout'])) {
 
 // Initialize session storage for history if it doesn't exist
 session_start();
+
 if (!isset($_SESSION['spending_history'])) {
     $_SESSION['spending_history'] = [];
 }
 
+try {
+    $conn = new DynamoDbClient([
+        'credentials' => [
+            'key'  => $_ENV['KEY'], 
+            'secret' => $_ENV['SECRET']
+        ], 
+        'region' => $_ENV['REGION'],
+        'version' => 'latest',
+        'scheme' => 'http'
+    ]);
+
+    $params = [
+        'TableName' => 'History',
+        'KeyConditions' => [
+            'c_id' => [
+                'ComparisonOperator' => 'EQ',
+                'AttributeValueList' => [
+                    [
+                    'S' => hash('sha256', $_SESSION['email'])
+                    ]
+                ]
+            ]
+        ]
+    ];
+    
+    do {
+    $query = $conn->query($params);
+    foreach($query['Items'] as $item) {
+        if (!in_array($item, $_SESSION['spending_history']))
+            array_push($_SESSION['spending_history'], $item);
+    }
+
+    $params['ExclusiveStartKey'] = $query['LastEvaluatedKey'] ?? null;
+} while (isset($params['ExclusiveStartKey']));
+
+} catch(Exception $err) {
+    echo "Database error: " . $err->getMessage();
+}
+
 // Add new entry if coming from smartspend.php with data
-if (isset($_GET['from_analysis']) && isset($_GET['data'])) {
+/**if (isset($_GET['from_analysis']) && isset($_GET['data'])) {
     $entry = json_decode(base64_decode($_GET['data']), true);
     $entry['timestamp'] = date('Y-m-d H:i:s');
     array_unshift($_SESSION['spending_history'], $entry);
-    
+
     // Keep only the last 50 entries
     $_SESSION['spending_history'] = array_slice($_SESSION['spending_history'], 0, 50);
-}
+}**/
 
 // Function to generate mini chart data
 function generate_mini_chart_data($historical_data) {
-    $labels = array_keys($historical_data['dates']);
+    $labels = array_keys($historical_data['monthly_data']);
     $datasets = [];
     
     foreach ($historical_data['data'] as $cat => $values) {
@@ -100,6 +149,41 @@ function generate_mini_chart_data($historical_data) {
     <div class="background"></div>
     
     <div class="content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="DashboardPage.php">
+                    <i class="fas fa-wallet me-2"></i> Smart Spend
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="DashboardPage.php">
+                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="SpendTrend.php">
+                                <i class="fas fa-chart-pie me-1"></i> Spending Trends
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                                <i class="fas fa-history me-1"></i> History
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cog me-1"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
         <div class="header text-center">
             <div class="container">
                 <h1><i class="fas fa-history me-2"></i> Spending History</h1>
@@ -114,7 +198,7 @@ function generate_mini_chart_data($historical_data) {
                         <i class="fas fa-clipboard-list fa-4x text-muted mb-4"></i>
                         <h3>No History Yet</h3>
                         <p class="text-muted">Your spending analyses will appear here after you use Smart Spend</p>
-                        <a href="smartspend.php" class="btn btn-primary mt-3">
+                        <a href="SpendTrend.php" class="btn btn-primary mt-3">
                             <i class="fas fa-chart-bar me-2"></i> Analyze Spending
                         </a>
                     </div>
@@ -166,11 +250,11 @@ function generate_mini_chart_data($historical_data) {
                             <div class="card-body">
                                 <div class="history-list" id="historyList">
                                     <?php foreach ($_SESSION['spending_history'] as $index => $entry): ?>
-                                        <div class="history-item" data-timestamp="<?= strtotime($entry['timestamp']) ?>" data-categories="<?= implode(',', array_keys($entry['by_category'])) ?>">
+                                        <div class="history-item" data-timestamp="<?= strtotime($entry['timestamp']['S']) ?>" data-categories="<?= implode(',', array_keys($entry['categories']['M'])) ?>">
                                             <div class="history-item-header">
                                                 <div class="d-flex align-items-center">
                                                     <i class="fas fa-calendar-day me-2"></i>
-                                                    <strong><?= date('M j, Y g:i a', strtotime($entry['timestamp'])) ?></strong>
+                                                    <strong><?= date('M j, Y g:i a', strtotime($entry['timestamp']['S'])) ?></strong>
                                                 </div>
                                                 <div class="history-actions">
                                                     <button class="btn btn-sm btn-outline-primary view-details" data-index="<?= $index ?>">
@@ -183,20 +267,20 @@ function generate_mini_chart_data($historical_data) {
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Total Spent</small>
-                                                            <div class="stat-value">$<?= number_format($entry['total_spent'], 2) ?></div>
+                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_spendings']['N']), 2) ?></div>
                                                         </div>
                                                     </div>
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Budget</small>
-                                                            <div class="stat-value">$<?= number_format($entry['total_budget'], 2) ?></div>
+                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_budget']['N']), 2) ?></div>
                                                         </div>
                                                     </div>
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Savings</small>
                                                             <div class="stat-value <?= $entry['savings'] >= 0 ? 'text-success' : 'text-danger' ?>">
-                                                                $<?= number_format(abs($entry['savings']), 2) ?>
+                                                                $<?= number_format(abs(floatval($entry['savings']['N'])), 2) ?>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -206,12 +290,12 @@ function generate_mini_chart_data($historical_data) {
                                                 <canvas class="mini-chart" id="miniChart<?= $index ?>"></canvas>
                                             </div>
                                             <div class="history-item-categories">
-                                                <?php foreach ($entry['by_category'] as $cat => $data): ?>
+                                                <?php foreach ($entry['categories']['M'] as $cat => $data): ?>
                                                     <span class="category-badge" style="background: <?= $categories[$cat]['color'] ?>20; border-left: 3px solid <?= $categories[$cat]['color'] ?>">
                                                         <i class="<?= $categories[$cat]['icon'] ?> me-1"></i>
                                                         <?= ucfirst($cat) ?>: 
-                                                        <span class="<?= $data['percentage'] > 100 ? 'text-danger' : 'text-success' ?>">
-                                                            <?= number_format($data['percentage'], 1) ?>%
+                                                        <span class="<?= $data['M']['percent']['N'] > 100 ? 'text-danger' : 'text-success' ?>">
+                                                            <?= number_format(floatval($data['M']['percent']['N']), 1) ?>%
                                                         </span>
                                                     </span>
                                                 <?php endforeach; ?>
@@ -265,7 +349,7 @@ function generate_mini_chart_data($historical_data) {
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize mini charts
         <?php foreach ($_SESSION['spending_history'] as $index => $entry): ?>
-            <?php $chartData = generate_mini_chart_data($entry['historical']); ?>
+            <?php $chartData = generate_mini_chart_data($entry['monthly_data']) ?>
             const ctx<?= $index ?> = document.getElementById('miniChart<?= $index ?>');
             if (ctx<?= $index ?>) {
                 new Chart(ctx<?= $index ?>, {
