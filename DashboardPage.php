@@ -99,6 +99,7 @@ function getExpenses() {
                 <li class="nav-item"><a href="DashboardPage.php" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Documents</a></li>
                 <li class="nav-item"><a href="uploadDocs.php" class="nav-link"><i class="fas fa-upload"></i> Upload</a></li>
+                <li class="nav-item"><a href="SpendTrend.php" class="nav-link"><i class="fas fa-credit-card"></i> Spend Trend</a></li>
             </ul>
         </nav>
         

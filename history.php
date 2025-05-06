@@ -10,6 +10,12 @@ $categories = [
     'utilities' => ['icon' => 'fas fa-bolt', 'color' => '#FFCD56']
 ];
 
+if (isset($_POST['logout'])) {
+    session_unset();
+    header('Location: LoginPage.php');
+    exit();
+}
+
 // Initialize session storage for history if it doesn't exist
 session_start();
 if (!isset($_SESSION['spending_history'])) {
@@ -57,46 +63,43 @@ function generate_mini_chart_data($historical_data) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="history.css">
+    <link rel="stylesheet" href="DashboardStyle.css">
 </head>
+<header>
+    <div class="header-container">
+        <div class="logo-title">
+            <img src="images/SmartSpendLogo.png" alt="Smart Spend Logo" class="logo">
+            <h1>Smart Spend</h1>
+        </div>
+        
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="DashboardPage.php" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li class="nav-item"><a href="uploadDocs.php" class="nav-link"><i class="fas fa-upload"></i> Upload</a></li>
+                <li class="nav-item"><a href="SpendTrend.php" class="nav-link"><i class="fas fa-credit-card"></i> Spend Trend</a></li>
+            </ul>
+        </nav>
+        
+        <div class="profile-dropdown" id="profileDropdown">
+            <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
+            <span class="profile-name">
+                <?php echo isset($_SESSION['user_fname']) ? htmlspecialchars($_SESSION['user_fname']) : 'User'; ?>
+            </span>
+            <form method="POST">
+            <i class="fas fa-chevron-down dropdown-icon"></i>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="ProfilePage.php" class="dropdown-item">View Profile</a>
+                <a class="dropdown-item"><button type='submit' style="background-color:rgba(0,0,0,0); border-style:none; width:10rem; height:2rem; text-align:left; cursor:pointer;" name="logout" >Sign Out</button></a>
+            </div>
+           </form>
+        </div>
+    </div>
+</header>
 <body>
     <div class="background"></div>
     
     <div class="content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="DashboardPage.php">
-                    <i class="fas fa-wallet me-2"></i> Smart Spend
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="DashboardPage.php">
-                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="smartspend.php">
-                                <i class="fas fa-chart-pie me-1"></i> Spending Trends
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                <i class="fas fa-history me-1"></i> History
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-cog me-1"></i> Settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        
         <div class="header text-center">
             <div class="container">
                 <h1><i class="fas fa-history me-2"></i> Spending History</h1>
@@ -468,6 +471,20 @@ function generate_mini_chart_data($historical_data) {
             const modal = new bootstrap.Modal(document.getElementById('historyModal'));
             modal.show();
         }
+        const dropdown = document.getElementById('profileDropdown');
+
+        // Toggle dropdown on click
+        dropdown.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        // Close dropdown if clicking outside
+        window.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
     });
     </script>
 </body>

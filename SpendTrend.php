@@ -277,6 +277,7 @@ function createHistoryCollection($client) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="spendtrend.css">
+    <link rel="stylesheet" href="DashboardStyle.css">
     <!-- Add bubble chat CSS -->
     <link rel="stylesheet" href="bubbleChatStyle.css">
     <style>
@@ -349,45 +350,50 @@ function createHistoryCollection($client) {
     </style>
 </head>
 <body>
+<header>
+    <div class="header-container">
+        <div class="logo-title">
+            <img src="images/SmartSpendLogo.png" alt="Smart Spend Logo" class="logo">
+            <h1>Smart Spend</h1>
+        </div>
+        
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="DashboardPage.php" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li class="nav-item"><a href="uploadDocs.php" class="nav-link"><i class="fas fa-upload"></i> Upload</a></li>
+                <li class="nav-item"><a href="SpendTrend.php" class="nav-link active"><i class="fas fa-credit-card"></i> Spend Trend</a></li>
+            </ul>
+        </nav>
+        
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-toggle">
+                <img src="images/ProfilePic.png" alt="User" class="profile-avatar">
+                <span class="profile-name"><?php echo htmlspecialchars($_SESSION['user_fname'] ?? 'User'); ?></span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="ProfilePage.php" class="dropdown-item">View Profile</a>
+                <form method="POST">
+                    <button type="submit" name="logout" class="dropdown-item" style="background:none; border:none; width:100%; text-align:left; padding:0;">Sign Out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+    <?php 
+        if (isset($_POST['logout'])) {
+            session_unset();
+            header('Location: LoginPage.php');
+            exit();
+        }
+    ?>
     <div class="background"></div>
     
     <div class="content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="DashboardPage.php">
-                    <i class="fas fa-wallet me-2"></i> Smart Spend
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'DashboardPage.php') ? 'active' : '' ?>" href="DashboardPage.php">
-                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'smartspend.php') ? 'active' : '' ?>" href="smartspend.php">
-                                <i class="fas fa-chart-pie me-1"></i> Spending Trends
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'history.php') ? 'active' : '' ?>" href="history.php">
-                                <i class="fas fa-history me-1"></i> History
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= ($current_page == 'ProfilePage.php') ? 'active' : '' ?>" href="ProfilePage.php">
-                                <i class="fas fa-cog me-1"></i> Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        
-        <div class="header text-center">
+         <div class="header text-center">
             <div class="container">
                 <h1><i class="fas fa-wallet me-2"></i> Smart Spend Tracker</h1>
                 <p class="lead mb-0">Visualize your spending habits and optimize your budget</p>
@@ -669,5 +675,18 @@ function createHistoryCollection($client) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Add bubble chat JS -->
     <script src="bubbleChat.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('.profile-toggle').addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('show');
+        });
+
+        window.addEventListener('click', function () {
+            document.getElementById('profileDropdown').classList.remove('show');
+        });
+    });
+    </script>
 </body>
 </html>
