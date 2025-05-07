@@ -144,6 +144,7 @@ function generate_mini_chart_data($historical_data) {
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-file-alt"></i> Documents</a></li>
                 <li class="nav-item"><a href="uploadDocs.php" class="nav-link"><i class="fas fa-upload"></i> Upload</a></li>
                 <li class="nav-item"><a href="SpendTrend.php" class="nav-link"><i class="fas fa-credit-card"></i> Spend Trend</a></li>
+                <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-history me-1"></i> History</a></li>
             </ul>
         </nav>
         
@@ -166,41 +167,7 @@ function generate_mini_chart_data($historical_data) {
     <div class="background"></div>
     
     <div class="content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="DashboardPage.php">
-                    <i class="fas fa-wallet me-2"></i> Smart Spend
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="DashboardPage.php">
-                                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="SpendTrend.php">
-                                <i class="fas fa-chart-pie me-1"></i> Spending Trends
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                <i class="fas fa-history me-1"></i> History
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-cog me-1"></i> Settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        
+
         <div class="header text-center">
             <div class="container">
                 <h1><i class="fas fa-history me-2"></i> Spending History</h1>
