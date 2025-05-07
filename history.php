@@ -27,10 +27,7 @@ if (isset($_POST['logout'])) {
 
 // Initialize session storage for history if it doesn't exist
 session_start();
-
-if (!isset($_SESSION['spending_history'])) {
-    $_SESSION['spending_history'] = [];
-}
+$_SESSION['spending_history'] = [];
 
 try {
     $conn = new DynamoDbClient([
@@ -57,11 +54,14 @@ try {
         ]
     ];
     
+    $marshaler = new Marshaler();
+    $decodedItem = "";
     do {
     $query = $conn->query($params);
     foreach($query['Items'] as $item) {
-        if (!in_array($item, $_SESSION['spending_history']))
-            array_push($_SESSION['spending_history'], $item);
+        $decodedItem = $marshaler->unmarshalItem($item);
+        if (!in_array($decodedItem, $_SESSION['spending_history']))
+            array_push($_SESSION['spending_history'], $decodedItem);
     }
 
     $params['ExclusiveStartKey'] = $query['LastEvaluatedKey'] ?? null;
@@ -71,22 +71,38 @@ try {
     echo "Database error: " . $err->getMessage();
 }
 
-// Add new entry if coming from smartspend.php with data
-/**if (isset($_GET['from_analysis']) && isset($_GET['data'])) {
-    $entry = json_decode(base64_decode($_GET['data']), true);
-    $entry['timestamp'] = date('Y-m-d H:i:s');
-    array_unshift($_SESSION['spending_history'], $entry);
-
-    // Keep only the last 50 entries
-    $_SESSION['spending_history'] = array_slice($_SESSION['spending_history'], 0, 50);
-}**/
-
 // Function to generate mini chart data
 function generate_mini_chart_data($historical_data) {
-    $labels = array_keys($historical_data['monthly_data']);
+    // Check if monthly_data is an array and not null
+    if (is_null($historical_data) || !is_array($historical_data)) {
+        return [
+            'labels' => [],
+            'datasets' => []
+        ];
+    }
+    $labels = array_keys($historical_data);
+    if (empty($labels)) {
+        return [
+            'labels' => [],
+            'datasets' => []
+        ];
+    }
+
+    $categories = [];
+
+    // Collect values per category across months
+    foreach ($historical_data as $month => $catValues) {
+        foreach ($catValues as $cat => $val) {
+            if (!isset($categories[$cat])) {
+                $categories[$cat] = [];
+            }
+            $categories[$cat][] = round(floatval($val), 2);
+        }
+    }
+
     $datasets = [];
-    
-    foreach ($historical_data['data'] as $cat => $values) {
+
+    foreach ($categories as $cat => $values) {
         $datasets[] = [
             'label' => ucfirst($cat),
             'data' => array_values($values),
@@ -96,12 +112,13 @@ function generate_mini_chart_data($historical_data) {
             'fill' => false
         ];
     }
-    
+
     return [
         'labels' => $labels,
         'datasets' => $datasets
     ];
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -212,7 +229,7 @@ function generate_mini_chart_data($historical_data) {
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label class="form-label">Time Period</label>
+                                    <label class="form-label" for='timeFilter'>Time Period</label>
                                     <select class="form-select" id="timeFilter">
                                         <option value="all">All Time</option>
                                         <option value="7d">Last 7 Days</option>
@@ -221,7 +238,7 @@ function generate_mini_chart_data($historical_data) {
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Category</label>
+                                    <label class="form-label" for='categoryFilter'>Category</label>
                                     <select class="form-select" id="categoryFilter">
                                         <option value="all">All Categories</option>
                                         <?php foreach ($categories as $cat => $data): ?>
@@ -250,11 +267,11 @@ function generate_mini_chart_data($historical_data) {
                             <div class="card-body">
                                 <div class="history-list" id="historyList">
                                     <?php foreach ($_SESSION['spending_history'] as $index => $entry): ?>
-                                        <div class="history-item" data-timestamp="<?= strtotime($entry['timestamp']['S']) ?>" data-categories="<?= implode(',', array_keys($entry['categories']['M'])) ?>">
+                                        <div class="history-item" data-timestamp="<?= strtotime($entry['timestamp']) ?>" data-categories="<?= implode(',', array_keys($entry['categories'])) ?>">
                                             <div class="history-item-header">
                                                 <div class="d-flex align-items-center">
                                                     <i class="fas fa-calendar-day me-2"></i>
-                                                    <strong><?= date('M j, Y g:i a', strtotime($entry['timestamp']['S'])) ?></strong>
+                                                    <strong><?= date('M j, Y g:i a', strtotime($entry['timestamp'])) ?></strong>
                                                 </div>
                                                 <div class="history-actions">
                                                     <button class="btn btn-sm btn-outline-primary view-details" data-index="<?= $index ?>">
@@ -267,20 +284,20 @@ function generate_mini_chart_data($historical_data) {
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Total Spent</small>
-                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_spendings']['N']), 2) ?></div>
+                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_spendings']), 2) ?></div>
                                                         </div>
                                                     </div>
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Budget</small>
-                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_budget']['N']), 2) ?></div>
+                                                            <div class="stat-value">$<?= number_format(floatval($entry['total_budget']), 2) ?></div>
                                                         </div>
                                                     </div>
                                                     <div class="col-4">
                                                         <div class="summary-stat">
                                                             <small>Savings</small>
                                                             <div class="stat-value <?= $entry['savings'] >= 0 ? 'text-success' : 'text-danger' ?>">
-                                                                $<?= number_format(abs(floatval($entry['savings']['N'])), 2) ?>
+                                                                $<?= number_format(abs(floatval($entry['savings'])), 2) ?>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -290,12 +307,12 @@ function generate_mini_chart_data($historical_data) {
                                                 <canvas class="mini-chart" id="miniChart<?= $index ?>"></canvas>
                                             </div>
                                             <div class="history-item-categories">
-                                                <?php foreach ($entry['categories']['M'] as $cat => $data): ?>
+                                                <?php foreach ($entry['categories'] as $cat => $data): ?>
                                                     <span class="category-badge" style="background: <?= $categories[$cat]['color'] ?>20; border-left: 3px solid <?= $categories[$cat]['color'] ?>">
                                                         <i class="<?= $categories[$cat]['icon'] ?> me-1"></i>
                                                         <?= ucfirst($cat) ?>: 
-                                                        <span class="<?= $data['M']['percent']['N'] > 100 ? 'text-danger' : 'text-success' ?>">
-                                                            <?= number_format(floatval($data['M']['percent']['N']), 1) ?>%
+                                                        <span class="<?= $data['percent'] > 100 ? 'text-danger' : 'text-success' ?>">
+                                                            <?= number_format(floatval($data['percent']), 1) ?>%
                                                         </span>
                                                     </span>
                                                 <?php endforeach; ?>
@@ -349,7 +366,7 @@ function generate_mini_chart_data($historical_data) {
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize mini charts
         <?php foreach ($_SESSION['spending_history'] as $index => $entry): ?>
-            <?php $chartData = generate_mini_chart_data($entry['monthly_data']) ?>
+            <?php $chartData = generate_mini_chart_data($entry['monthly_data']); ?>
             const ctx<?= $index ?> = document.getElementById('miniChart<?= $index ?>');
             if (ctx<?= $index ?>) {
                 new Chart(ctx<?= $index ?>, {
