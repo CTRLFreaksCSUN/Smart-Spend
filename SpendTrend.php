@@ -19,7 +19,7 @@ function isServerRunning() {
 
 if (!isServerRunning()) {
     // Start the server from its correct directory
-    $command = 'cd /d C:\xampp\htdocs\SmartSpendServer && start /B python spend_trend.py';
+    $command = 'cd /d C:\xampp\htdocs\SmartSpend && start /B python spend_trend.py';
     pclose(popen($command, 'r'));
     sleep(2);
 }
@@ -677,15 +677,14 @@ function createHistoryCollection($client) {
     <script src="bubbleChat.js"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelector('.profile-toggle').addEventListener('click', function (e) {
-            e.stopPropagation();
-            document.getElementById('profileDropdown').classList.toggle('show');
-        });
+    document.getElementById('profileDropdown').addEventListener('click', function (e) {
+        e.stopPropagation(); 
+        this.classList.toggle('show');
+    });
 
-        window.addEventListener('click', function () {
-            document.getElementById('profileDropdown').classList.remove('show');
-        });
+    window.addEventListener('click', function () {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.classList.remove('show');
     });
     </script>
 </body>
