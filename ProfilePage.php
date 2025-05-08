@@ -211,9 +211,6 @@ $user = [
     <main class="profile-main">
         <div class="profile-header">
             <h1>My Profile</h1>
-            <div class="header-actions">
-                <button class="edit-btn"><i class="fas fa-pencil-alt"></i> Edit Profile</button>
-            </div>
         </div>
 
         <div class="profile-content">
