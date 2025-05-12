@@ -5,7 +5,6 @@ use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\DynamoDb\Marshaler;
 use Dotenv\Dotenv;
-use DateTime;
 
 require __DIR__.'/vendor/autoload.php';
 require_once __DIR__.'/helpers.php';
@@ -28,8 +27,9 @@ $marshaler = new Marshaler();
 list($trendLabels, $trendData) = fetchSpendingTrend($financeClient, $marshaler, $_SESSION['email'], 6);
 
 $latest = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
+
 $rent      = floatval($latest['rent']     ?? 0);
-$util      = floatval($latest['utilities']    ?? 0);
+$utilities = floatval($latest['utilities']    ?? 0);
 $med       = floatval($latest['medical']      ?? 0);
 $food      = floatval($latest['food']         ?? 0);
 $shop      = floatval($latest['shopping']     ?? 0);
@@ -44,7 +44,7 @@ $incomeData = [700, 720, 750, 780, 760, 800];
 $expenseData = [500, 540, 580, 600, 590, 620];
 
 $categoryLabels = ['Property', 'Utilities', 'Medical', 'Food', 'Shopping', 'Transport', 'Entertainment'];
-$categoryData = [$rent, $util, $med, $food, $shop, $transp, $en];
+$categoryData = [$rent, $utilities, $med, $food, $shop, $transp, $en];
 
 $savingsData = [150, 180, 200, 220, 250, 300];
 

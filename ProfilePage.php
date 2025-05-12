@@ -129,7 +129,6 @@ if (isset($_POST['save_categories']) && is_array($_POST['category_data'])) {
     <main class="profile-main">
       <div class="profile-header">
         <h1>My Profile</h1>
-        <button class="edit-btn"><i class="fas fa-pencil-alt"></i> Edit Profile</button>
       </div>
 
       <!-- PROFILE CARD -->
@@ -169,32 +168,6 @@ if (isset($_POST['save_categories']) && is_array($_POST['category_data'])) {
             <button type="button" onclick="switchView(event,'change-password')" class="security-action">Change Password</button>
           </div>
         </section>
-
-        <!-- EDIT CATEGORIES -->
-        <section class="profile-section category-edit-section">
-          <div class="section-header">
-            <h3><i class="fas fa-chart-pie"></i> Edit Categories</h3>
-          </div>
-          <form method="POST" class="category-form">
-            <div class="category-list">
-              <?php foreach ($categoryLabels as $i => $label): ?>
-                <div class="category-item">
-                  <label for="cat-<?=$i?>"><?=htmlspecialchars($label)?></label>
-                  <input
-                    type="number"
-                    id="cat-<?=$i?>"
-                    name="category_data[]"
-                    step="0.01"
-                    value="<?=htmlspecialchars($categoryData[$i])?>"
-                    required
-                  />
-                </div>
-              <?php endforeach; ?>
-            </div>
-            <button type="submit" name="save_categories" class="btn-save">Save Changes</button>
-          </form>
-        </section>
-      </div>
 
       <!-- CHANGE PASSWORD FORM -->
       <form class="profile-content change-password" method="POST" action="">

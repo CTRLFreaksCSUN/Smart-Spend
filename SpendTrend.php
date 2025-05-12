@@ -33,7 +33,7 @@ try {
 $_SESSION['rent']       = $latest['rent']      ?? 0;
 $_SESSION['medical']    = $latest['medical']       ?? 0;
 $_SESSION['food']       = $latest['food']          ?? 0;
-$_SESSION['util']       = $latest['utilities']     ?? 0;
+$_SESSION['utilities']       = $latest['utilities']     ?? 0;
 $_SESSION['shopping']   = $latest['shopping']      ?? 0;
 $_SESSION['transport']  = $latest['transport']     ?? 0;
 $_SESSION['entertain']  = $latest['entertainment'] ?? 0;
@@ -54,12 +54,13 @@ if (!isServerRunning()) {
 
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
-    'gas' => ['icon' => 'fas fa-gas-pump', 'color' => '#FF9F43'],
-    'groceries' => ['icon' => 'fas fa-shopping-basket', 'color' => '#4BC0C0'],
-    'subscriptions' => ['icon' => 'fas fa-newspaper', 'color' => '#9966FF'],
-    'dining' => ['icon' => 'fas fa-utensils', 'color' => '#FF6384'],
-    'entertainment' => ['icon' => 'fas fa-film', 'color' => '#36A2EB'],
-    'utilities' => ['icon' => 'fas fa-bolt', 'color' => '#FFCD56']
+  'rent'          => ['icon'=>'fas fa-home',        'color'=>'#FF9F43'],
+  'medical'       => ['icon'=>'fas fa-notes-medical','color'=>'#4BC0C0'],
+  'food'          => ['icon'=>'fas fa-utensils',    'color'=>'#9966FF'],
+  'utilities'     => ['icon'=>'fas fa-bolt',        'color'=>'#FFCD56'],
+  'shopping'      => ['icon'=>'fas fa-shopping-bag','color'=>'#36A2EB'],
+  'transport'     => ['icon'=>'fas fa-car',         'color'=>'#FF6384'],
+  'entertainment' => ['icon'=>'fas fa-film',        'color'=>'#36A2EB'],
 ];
 
 $analytics = null;
