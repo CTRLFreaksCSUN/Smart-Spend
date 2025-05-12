@@ -42,7 +42,6 @@ $expenseData = [500, 540, 580, 600, 590, 620];
 
 $savingsData = [150, 180, 200, 220, 250, 300];
 
-$predictedData = [300, 350, 400, 450, 500, 550];
 ?>
 
 <!DOCTYPE html>
@@ -125,11 +124,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
     <div class="card">
         <h2>Savings Progress</h2>
         <canvas id="savingsChart"></canvas>
-    </div>
-
-    <div class="card">
-        <p>Predicted Spending</p>
-        <canvas id="predictedChart"></canvas>
     </div>
 
 </main>
@@ -224,22 +218,6 @@ $predictedData = [300, 350, 400, 450, 500, 550];
                 label: 'Savings ($)',
                 data: <?php echo json_encode($savingsData); ?>,
                 backgroundColor: '#3f51b5'
-            }]
-        },
-        options: { responsive: true }
-    });
-
-    new Chart(document.getElementById('predictedChart'), {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($trendLabels); ?>,
-            datasets: [{
-                label: 'Predicted Spending ($)',
-                data: <?php echo json_encode($predictedData); ?>,
-                borderColor: '#ff6384',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderWidth: 2,
-                tension: 0.3
             }]
         },
         options: { responsive: true }

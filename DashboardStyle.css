@@ -87,14 +87,19 @@
   
   /* Card grid */
   .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      max-width: 1400px;
-      margin: 80px auto;
-      padding: 0 40px;
-  }
-  
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;  /* center all rows */
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 80px auto;
+    padding: 0 40px;
+    }
+
+    .card-grid .card {
+    flex: 0 1 350px;   /* never shrink below, never grow above 350px */
+    }
+    
   .card {
       background-color: var(--light-blue);
       border-radius: 15px;
