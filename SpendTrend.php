@@ -65,42 +65,43 @@ $categories = [
 
 $analytics = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $expenses = [];
-    $budgets = [];
+    // 1) get both previous maps
+    $prevRec      = getLatestExpenses($financeClient, $m, $_SESSION['email']);
+    $prevExpenses = $prevRec['expenses'] ?? [];
+    $prevBudgets  = $prevRec['budgets']  ?? [];
+
     $expenseSums = [];
-    
+    $budgets     = [];
+
+    // 2) loop all 7 categories
     foreach ($categories as $cat => $data) {
-        if (isset($_POST['expenses'][$cat])) {
-            $expenseValues = array_filter(array_map('floatval', explode(',', $_POST['expenses'][$cat])));
-            $expenses[$cat] = !empty($expenseValues) ? $expenseValues : [0];
+        // --- EXPENSES: parse, sum, add to old ---
+        $vals = [];
+        if (!empty($_POST['expenses'][$cat])) {
+            $vals = array_filter(
+                array_map('floatval', explode(',', $_POST['expenses'][$cat]))
+            );
         }
-        $budgets[$cat] = floatval($_POST['budgets'][$cat] ?? 0);
-    }
+        $sum               = array_sum($vals);
+        $expenseSums[$cat] = ($prevExpenses[$cat] ?? 0) + $sum;
 
-    foreach ($expenses as $cat => $vals) {
-        $expenseSums[$cat] = array_sum($vals);
-    }
-    
-    // pull last‐saved month’s totals
-    $prev = getLatestExpenses($financeClient, $m, $_SESSION['email']);
-
-    // add them onto the new sums
-    foreach ($expenseSums as $cat => $val) {
-        $expenseSums[$cat] = $val + ($prev[$cat] ?? 0);
-    }
+    if (isset($_POST['budgets'][$cat]) && $_POST['budgets'][$cat] !== '') {
+        $budgets[$cat] = floatval($_POST['budgets'][$cat]);
+    } else {
+        $budgets[$cat] = $prevBudgets[$cat] ?? 0;
+    }}
 
     $apiData = [
-        'expenses' => $expenses,
+        'expenses' => $expenseSums,
         'budgets' => $budgets,
         'timeframe' => $_POST['timeframe'] ?? '6m'
     ];
     
     try {
         $now = (new DateTime())->format(DateTime::ATOM);
-
         $financeClient->putItem([
             'TableName' => 'Finance',
-            'Item' => $m->marshalItem([
+            'Item'      => $m->marshalItem([
                 'c_id'       => hash('sha256', $_SESSION['email']),
                 'created_at' => $now,
                 'expenses'   => $expenseSums,

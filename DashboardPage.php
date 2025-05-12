@@ -26,25 +26,19 @@ $marshaler = new Marshaler();
 
 list($trendLabels, $trendData) = fetchSpendingTrend($financeClient, $marshaler, $_SESSION['email'], 6);
 
-$latest = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
+// Latest expenses & budgets
+$latest    = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
+$budgets   = $latest['budgets'] ?? [];
+$expenses  = $latest['expenses'] ?? [];
 
-$rent      = floatval($latest['rent']     ?? 0);
-$utilities = floatval($latest['utilities']    ?? 0);
-$med       = floatval($latest['medical']      ?? 0);
-$food      = floatval($latest['food']         ?? 0);
-$shop      = floatval($latest['shopping']     ?? 0);
-$transp    = floatval($latest['transport']    ?? 0);
-$en        = floatval($latest['entertainment']?? 0);
-
-
-$budgetData = [500, 550, 580, 620, 600, 650];
-$actualData = [480, 530, 560, 610, 590, 640];
+// Seven categories in lock‑step
+$keys       = ['rent','utilities','medical','food','shopping','transport','entertainment'];
+$categoryLabels = ['Rent','Utilities','Medical','Food','Shopping','Transport','Entertainment'];
+$actualData = array_map(fn($k)=> floatval($expenses[$k] ?? 0), $keys);
+$budgetData = array_map(fn($k)=> floatval($budgets[$k] ?? 0), $keys);
 
 $incomeData = [700, 720, 750, 780, 760, 800];
 $expenseData = [500, 540, 580, 600, 590, 620];
-
-$categoryLabels = ['Property', 'Utilities', 'Medical', 'Food', 'Shopping', 'Transport', 'Entertainment'];
-$categoryData = [$rent, $utilities, $med, $food, $shop, $transp, $en];
 
 $savingsData = [150, 180, 200, 220, 250, 300];
 
@@ -157,21 +151,32 @@ $predictedData = [300, 350, 400, 450, 500, 550];
     new Chart(document.getElementById('budgetChart'), {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($trendLabels); ?>,
-            datasets: [
-                {
-                    label: 'Budget ($)',
-                    data: <?php echo json_encode($budgetData); ?>,
-                    backgroundColor: '#4caf50'
-                },
-                {
-                    label: 'Actual ($)',
-                    data: <?php echo json_encode($actualData); ?>,
-                    backgroundColor: '#ff9800'
-                }
-            ]
+        labels: <?= json_encode($categoryLabels) ?>,
+        datasets: [
+            {
+            label: 'Actual Spending',
+            data: <?= json_encode($actualData) ?>,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            },
+            {
+            label: 'Budget',
+            data: <?= json_encode($budgetData) ?>,
+            backgroundColor: 'rgba(255, 99, 132, 0.6)'
+            }
+        ]
         },
-        options: { responsive: true }
+        options: {
+        responsive: true,
+        scales: {
+            y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Amount ($)' }
+            },
+            x: {
+            title: { display: true, text: 'Category' }
+            }
+        }
+        }
     });
 
     new Chart(document.getElementById('incomeChart'), {
@@ -204,7 +209,7 @@ $predictedData = [300, 350, 400, 450, 500, 550];
             labels: <?php echo json_encode($categoryLabels); ?>,
             datasets: [{
                 label: 'Categories',
-                data: <?php echo json_encode($categoryData); ?>,
+                data: <?php echo json_encode($actualData); ?>,
                 backgroundColor: ['#ff6384', '#4caf50', '#FFC0CB', '#ffce56', '#36a2eb', '#800080', '#ff9800']
             }]
         },
