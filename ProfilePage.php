@@ -174,7 +174,6 @@ if (isset($_POST['save_categories']) && is_array($_POST['category_data'])) {
         <section class="profile-section">
           <div class="section-header">
             <h3><i class="fas fa-user-tag"></i> Personal Information</h3>
-            <!-- remove the separate edit button -->
           </div>
           <div class="section-content">
             <div class="info-row">

@@ -118,8 +118,8 @@
              'Value' => 'groceries'
           ],
           [
-             'Key' => 'Housing',
-             'Value' => 'housing'
+             'Key' => 'Rent',
+             'Value' => 'rent'
           ],
           [
              'Key' => 'Transportation',
@@ -160,16 +160,16 @@
       $income = $_POST['income'];
       $savingsGoals = isset($_POST['savings_goals']) ? $_POST['savings_goals'] : [];
       $budget = isset($_POST['budget']) ? $_POST['budget'] : 'Flexible';
-      $expenseCats = isset($_POST['expenses']) ? $_POST['expenses'] : [];
       
-      $expenses = [];
-      $expenses['entertainment'] = isset($_POST['entertain']) ? (int)$_POST['entertain'] : (int)0;
-      $expenses['property'] = isset($_POST['rent']) ? (int)$_POST['rent'] : (int)0;
-      $expenses['food'] = isset($_POST['food']) ? (int)$_POST['food'] : (int)0;
-      $expenses['medical'] = isset($_POST['medical']) ? (int)$_POST['medical'] : (int)0;
-      $expenses['shopping'] = isset($_POST['shopping']) ? (int)$_POST['shopping'] : (int)0;
-      $expenses['transport'] = isset($_POST['transport']) ? (int)$_POST['transport'] : (int)0;
-      $expenses['utilities'] = isset($_POST['util']) ? (int)$_POST['util'] : (int)0;
+      $budgets = [
+          'entertainment' => (int)($_POST['entertain']   ?? 0),
+          'rent'          => (int)($_POST['rent']        ?? 0),
+          'food'          => (int)($_POST['food']        ?? 0),
+          'medical'       => (int)($_POST['medical']     ?? 0),
+          'shopping'      => (int)($_POST['shopping']    ?? 0),
+          'transport'     => (int)($_POST['transport']   ?? 0),
+          'utilities'     => (int)($_POST['util']        ?? 0),
+        ];
       
       // Create a marshaler to convert PHP arrays to DynamoDB format
       $marshaler = new Marshaler();
@@ -181,8 +181,7 @@
         'income' => (int)$income,
         'savings_goals' => $savingsGoals,
         'budget_type' => $budget,
-        'expense_categories' => $expenseCats,
-        'expenses' => $expenses,
+        'budgets' => $budgets,
         'created_at' => date('Y-m-d H:i:s')
       ];
       
@@ -259,14 +258,6 @@
             <label><input type="checkbox" name="savings_goals[]" value="Emergency"> Emergency Fund</label>
           </div>
 
-          <div id="custom-savings-goals" class="custom-input-wrapper">
-            <input type="text" name="savings_goals[]" class="custom-input" placeholder="Custom goal name">
-          </div>
-
-          <button type="button" class="rounded-button small-add-button" onclick="addSavingsGoal()">
-            <span>+ Add Custom Goal</span>
-          </button>
-
           <!-- Preferred Budget -->
           <span class="section-title">Budget Preference</span>
           <div class="radio-group">
@@ -274,14 +265,14 @@
             <label><input type="radio" name="budget" value="Flexible" id="budget-flexible"> Flexible Budget</label>
           </div>
 
-          <!-- Expense Categories -->
+          <!-- Budget Categories -->
            <form method="POST" onsubmit="<?php htmlspecialchars($_SERVER['PHP_SELF']);?>">
           <span class="section-title">Expense Categories</span>
             <label>
               <div class='checkbox-inputbox'>
               <input type="checkbox" name="expenses[]" value="Food"> Food & Dining<input type='number' id='food'
                name='food' value='<?php htmlspecialchars($_POST['food'] ?? 0);?>'/></label>
-            <label><input type="checkbox" name="expenses[]" value="Rent"> Housing<input type='number' id='rent'
+            <label><input type="checkbox" name="expenses[]" value="Rent"> Rent<input type='number' id='rent'
              name='rent' value='<?php htmlspecialchars($_POST['rent'] ?? 0);?>'/></label>
             <label><input type="checkbox" name="expenses[]" value="Medical"> Medical<input type='number' id='medical' 
             name='medical' value='<?php htmlspecialchars($_POST['medical'] ?? 0);?>'/></label>
@@ -295,15 +286,6 @@
             name='entertain' value='<?php htmlspecialchars($_POST['entertain'] ?? 0);?>'/></label>
           </div>
         </form>
-
-          <!-- Custom Categories -->
-          <div id="custom-expenses" class="custom-input-wrapper">
-            <input type="text" name="expenses[]" class="custom-input" placeholder="Custom category name">
-          </div>
-
-          <button type="button" class="rounded-button small-add-button" onclick="addExpenseField()">
-            <span>+ Add Category</span>
-          </button>
 
           <!-- Form Actions -->
           <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
@@ -332,28 +314,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function addExpenseField() {
-      const container = document.getElementById("custom-expenses");
-      const input = document.createElement("input");
-      input.type = "text";
-      input.name = "expenses[]";
-      input.placeholder = "Custom category name";
-      input.className = "custom-input";
-      container.appendChild(input);
-    }
-
-    function addSavingsGoal() {
-      const container = document.getElementById("custom-savings-goals");
-      const input = document.createElement("input");
-      input.type = "text";
-      input.name = "savings_goals[]";
-      input.placeholder = "Custom goal name";
-      input.className = "custom-input";
-      container.appendChild(input);
-    }
-  </script>
 
   <script src="bubbleChat.js"></script>
 </body>
