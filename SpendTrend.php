@@ -1,14 +1,42 @@
 <?php
-// smartspend.php
 session_start();
 
 use Aws\DynamoDb\DynamoDbClient;
+use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\DynamoDb\Marshaler;
 use Dotenv\Dotenv;
 
 require __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/helpers.php';
 $env = Dotenv::createImmutable(__DIR__);
 $env->load();
+
+$financeClient = new DynamoDbClient([
+  'region'      => $_ENV['REGION'],
+  'version'     => 'latest',
+  'credentials' => [
+    'key'    => $_ENV['KEY'],
+    'secret' => $_ENV['SECRET'],
+  ],
+  'scheme'      => 'http',
+]);
+$m = new Marshaler();
+
+try {
+  $latest = getLatestExpenses($financeClient, $m, $_SESSION['email']);
+} catch (DynamoDbException $e) {
+  // handle (or default to zeros)
+  $latest = [];
+}
+
+// Now turn that into your seven category variables:
+$_SESSION['rent']       = $latest['rent']      ?? 0;
+$_SESSION['medical']    = $latest['medical']       ?? 0;
+$_SESSION['food']       = $latest['food']          ?? 0;
+$_SESSION['util']       = $latest['utilities']     ?? 0;
+$_SESSION['shopping']   = $latest['shopping']      ?? 0;
+$_SESSION['transport']  = $latest['transport']     ?? 0;
+$_SESSION['entertain']  = $latest['entertainment'] ?? 0;
 
 function isServerRunning() {
     $ch = curl_init('http://localhost:5000/calc_spending');
@@ -19,12 +47,10 @@ function isServerRunning() {
 
 if (!isServerRunning()) {
     // Start the server from its correct directory
-    $command = 'cd /d C:\xampp\htdocs\SmartSpend && start /B python spend_trend.py';
+    $command = 'cd /d C:\xampp\htdocs\Smart-Spend && start /B python spend_trend.py';
     pclose(popen($command, 'r'));
     sleep(2);
 }
-
-
 
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [
@@ -40,6 +66,7 @@ $analytics = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $expenses = [];
     $budgets = [];
+    $expenseSums = [];
     
     foreach ($categories as $cat => $data) {
         if (isset($_POST['expenses'][$cat])) {
@@ -48,13 +75,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $budgets[$cat] = floatval($_POST['budgets'][$cat] ?? 0);
     }
+
+    foreach ($expenses as $cat => $vals) {
+        $expenseSums[$cat] = array_sum($vals);
+    }
     
+    // pull last‐saved month’s totals
+    $prev = getLatestExpenses($financeClient, $m, $_SESSION['email']);
+
+    // add them onto the new sums
+    foreach ($expenseSums as $cat => $val) {
+        $expenseSums[$cat] = $val + ($prev[$cat] ?? 0);
+    }
+
     $apiData = [
         'expenses' => $expenses,
         'budgets' => $budgets,
         'timeframe' => $_POST['timeframe'] ?? '6m'
     ];
     
+    try {
+        $now = (new DateTime())->format(DateTime::ATOM);
+
+        $financeClient->putItem([
+            'TableName' => 'Finance',
+            'Item' => $m->marshalItem([
+                'c_id'       => hash('sha256', $_SESSION['email']),
+                'created_at' => $now,
+                'expenses'   => $expenseSums,
+                'budgets'    => $budgets,
+            ]),
+        ]);
+    } catch (DynamoDbException $e) {
+        error_log("Failed to save raw expenses/budgets: " . $e->getMessage());
+    }
+
     $ch = curl_init('http://localhost:5000/calc_spending');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -101,7 +156,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // creates collection if it does not exist
             createHistoryCollection($conn);
-            $marshaler = new Marshaler();
 
             $catDetails = [];
             $spendingDist = [];
@@ -131,12 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $forecasts[$t] = $entry['forecasts'][$t];
                 $anomalies[$t] = $entry['anomalies'][$t];
 
-                foreach($months as $ind => $m) {
+                foreach($months as $ind => $month) {
                     // Safely assign category value for the month
                     if (isset($entry['historical']['data'][$t]) && is_array($entry['historical']['data'][$t])) {
-                        $data[$m][$t] = $entry['historical']['data'][$t][$ind] ?? null;
+                        $data[$month][$t] = $entry['historical']['data'][$t][$ind] ?? null;
                     } else {
-                        $data[$m][$t] = null;
+                        $data[$month][$t] = null;
                     }
                 }
             }
@@ -156,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'anomalies' => $anomalies,
                 'timestamp' => $entry['timestamp']
             ];
-            $marshaledEntity = $marshaler->marshalItem($history);
+            $marshaledEntity = $m->marshalItem($history);
             $action = $conn->putItem([
                 'TableName' => 'History',
                 'Item' => $marshaledEntity

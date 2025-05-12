@@ -5,22 +5,37 @@ use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Exception\DynamoDbException;
 use Aws\DynamoDb\Marshaler;
 use Dotenv\Dotenv;
+use DateTime;
 
 require __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/helpers.php';
 $env = Dotenv::createImmutable(__DIR__);
 $env->load();
 
-getExpenses();
-$util = intval($_SESSION['util']);
-$food = intval($_SESSION['food']);
-$shop = intval($_SESSION['shopping']);
-$transp = intval($_SESSION['transport']);
-$en = intval($_SESSION['entertain']);
-$med = intval($_SESSION['medical']);
-$rent = intval($_SESSION['rent']);
+$financeClient    = new DynamoDbClient([
+    'region'      => $_ENV['REGION'],
+    'version'     => 'latest',
+    'credentials' => [
+        'key'    => $_ENV['KEY'],
+        'secret' => $_ENV['SECRET'],
+    ],
+    'scheme'      => 'http',
+]);
+$marshaler = new Marshaler();
 
-$labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-$spendingData = [200, 300, 250, 400, 350, 450];
+
+
+list($trendLabels, $trendData) = fetchSpendingTrend($financeClient, $marshaler, $_SESSION['email'], 6);
+
+$latest = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
+$rent      = floatval($latest['rent']     ?? 0);
+$util      = floatval($latest['utilities']    ?? 0);
+$med       = floatval($latest['medical']      ?? 0);
+$food      = floatval($latest['food']         ?? 0);
+$shop      = floatval($latest['shopping']     ?? 0);
+$transp    = floatval($latest['transport']    ?? 0);
+$en        = floatval($latest['entertainment']?? 0);
+
 
 $budgetData = [500, 550, 580, 620, 600, 650];
 $actualData = [480, 530, 560, 610, 590, 640];
@@ -34,45 +49,6 @@ $categoryData = [$rent, $util, $med, $food, $shop, $transp, $en];
 $savingsData = [150, 180, 200, 220, 250, 300];
 
 $predictedData = [300, 350, 400, 450, 500, 550];
-
-// Extract user expenses from database
-function getExpenses() {
-    try {
-        $client = new DynamoDbClient([
-            'credentials' => [
-                'key' => $_ENV['KEY'],
-                'secret' => $_ENV['SECRET']
-            ],
-            'region' => $_ENV['REGION'],
-            'version' => 'latest',
-            'scheme' => 'http'
-        ]);
-
-        $marshaler = new Marshaler();
-        $query = $client->getItem([
-            'TableName' => 'Finance',
-            'Key' => $marshaler->marshalItem([
-                'c_id' => hash('sha256', $_SESSION['email'])
-            ])
-            ]);
-        
-        if (!empty($query)) {
-            $expenses = $marshaler->unmarshalValue($query['Item']['expenses']);
-
-            $_SESSION['rent'] = $expenses['property'];
-            $_SESSION['medical'] = $expenses['medical'];
-            $_SESSION['food'] = $expenses['food'];
-            $_SESSION['util'] = $expenses['utilities'];
-            $_SESSION['shopping'] = $expenses['shopping'];
-            $_SESSION['transport'] = $expenses['transport'];
-            $_SESSION['entertain'] = $expenses['entertainment'];
-        }
-    }
-    catch(Exception $err) {
-        echo "Database error: " . $err;
-    }
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -178,52 +154,10 @@ function getExpenses() {
 </div>
 
 <script>
-const spendingCard = document.querySelector('#spendingChart').closest('.card');
-const ctx = document.getElementById('spendingChart').getContext('2d');
-
-const spendingChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?php echo json_encode($labels); ?>,
-        datasets: [{
-            label: 'Spending ($)',
-            data: <?php echo json_encode($spendingData); ?>,
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
-        },
-        onClick: (e) => {
-            // Prevent card click when clicking directly on chart elements
-            e.stopPropagation();
-        },
-        onHover: (e) => {
-            // Change cursor style when hovering over chart elements
-            const element = e.chart.getElementsAtEventForMode(
-                e, 'nearest', { intersect: true }, false
-            );
-            e.native.target.style.cursor = element.length ? 'pointer' : 'default';
-        }
-    }
-});
-
-spendingCard.addEventListener('click', function(e) {
-    if (!e.target.closest('canvas')) {
-        window.location.href = 'SpendTrend.php';
-    }
-});
-
     new Chart(document.getElementById('budgetChart'), {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($labels); ?>,
+            labels: <?php echo json_encode($trendLabels); ?>,
             datasets: [
                 {
                     label: 'Budget ($)',
@@ -243,7 +177,7 @@ spendingCard.addEventListener('click', function(e) {
     new Chart(document.getElementById('incomeChart'), {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($labels); ?>,
+            labels: <?php echo json_encode($trendLabels); ?>,
             datasets: [
                 {
                     label: 'Income ($)',
@@ -280,7 +214,7 @@ spendingCard.addEventListener('click', function(e) {
     new Chart(document.getElementById('savingsChart'), {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($labels); ?>,
+            labels: <?php echo json_encode($trendLabels); ?>,
             datasets: [{
                 label: 'Savings ($)',
                 data: <?php echo json_encode($savingsData); ?>,
@@ -293,7 +227,7 @@ spendingCard.addEventListener('click', function(e) {
     new Chart(document.getElementById('predictedChart'), {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($labels); ?>,
+            labels: <?php echo json_encode($trendLabels); ?>,
             datasets: [{
                 label: 'Predicted Spending ($)',
                 data: <?php echo json_encode($predictedData); ?>,
@@ -306,6 +240,27 @@ spendingCard.addEventListener('click', function(e) {
         options: { responsive: true }
     });
 </script>
+
+<script>
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: <?php echo json_encode($trendLabels); ?>,
+    datasets: [{
+      label: 'Spending ($)',
+      data: <?php echo json_encode($trendData); ?>,
+      fill: true,
+      tension: 0.3,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: true } }
+  }
+});
+  </script>
 
 <!-- Chat Bubble JavaScript -->
 <script src="bubbleChat.js"></script>

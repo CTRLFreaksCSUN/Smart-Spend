@@ -13,7 +13,7 @@ import openai
 from dotenv import load_dotenv
 
 # Load environment variables from the .env file at the specified path.
-dotenv_path = r"C:\xampp\htdocs\test2\Smart-Spend-main\.env"    # MAKE SURE THIS IS YOUR OWN DIRECTORY
+dotenv_path = r"C:\xampp\htdocs\Smart-Spend\.env"    # MAKE SURE THIS IS YOUR OWN DIRECTORY
 load_dotenv(dotenv_path=dotenv_path)
 
 # Retrieve and set the OpenAI API key from the environment.
