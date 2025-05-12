@@ -22,9 +22,18 @@ $financeClient    = new DynamoDbClient([
 ]);
 $marshaler = new Marshaler();
 
+list($trendLabels, $trendData) = fetchSpendingTrend(
+    $financeClient, $marshaler, $_SESSION['email'], 6
+);
 
+// 2) Income trend:
+list($incLabels, $incData) = fetchIncomeTrend(
+    $financeClient, $marshaler, $_SESSION['email'], 6
+);
 
-list($trendLabels, $trendData) = fetchSpendingTrend($financeClient, $marshaler, $_SESSION['email'], 6);
+// Bind the two helper results directly:
+$incomeData  = $incData;
+$expenseData = $trendData;
 
 // Latest expenses & budgets
 $latest    = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
@@ -36,9 +45,6 @@ $keys       = ['rent','utilities','medical','food','shopping','transport','enter
 $categoryLabels = ['Rent','Utilities','Medical','Food','Shopping','Transport','Entertainment'];
 $actualData = array_map(fn($k)=> floatval($expenses[$k] ?? 0), $keys);
 $budgetData = array_map(fn($k)=> floatval($budgets[$k] ?? 0), $keys);
-
-$incomeData = [700, 720, 750, 780, 760, 800];
-$expenseData = [500, 540, 580, 600, 590, 620];
 
 $savingsData = [150, 180, 200, 220, 250, 300];
 
@@ -102,18 +108,18 @@ $savingsData = [150, 180, 200, 220, 250, 300];
 <main class="card-grid">
 
     <div class="card" onclick="window.location.href='SpendTrend.php';" style="cursor: pointer;">
-    <h2>Spending Trends</h2>
-    <canvas id="spendingChart"></canvas>
+        <h2>Spending Trends</h2>
+        <canvas id="spendingChart"></canvas>
     </div>
 
     <div class="card">
         <h2>Budget vs Actual Spending</h2>
         <canvas id="budgetChart"></canvas>
-    </div>
+    </div>    
 
     <div class="card">
         <h2>Income vs Spending</h2>
-        <canvas id="incomeChart"></canvas>
+         <canvas id="incomeChart"></canvas>
     </div>
 
     <div class="card">
@@ -176,26 +182,33 @@ $savingsData = [150, 180, 200, 220, 250, 300];
     new Chart(document.getElementById('incomeChart'), {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($trendLabels); ?>,
+            labels: <?= json_encode($incLabels) ?>,
             datasets: [
-                {
-                    label: 'Income ($)',
-                    data: <?php echo json_encode($incomeData); ?>,
-                    borderColor: '#4caf50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                    borderWidth: 2
-                },
-                {
-                    label: 'Spending ($)',
-                    data: <?php echo json_encode($expenseData); ?>,
-                    borderColor: '#f44336',
-                    backgroundColor: 'rgba(244, 67, 54, 0.2)',
-                    borderWidth: 2
-                }
+            {
+                label: 'Income ($)',
+                data: <?= json_encode($incomeData) ?>,
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76,175,80,0.2)',
+                borderWidth: 2
+            },
+            {
+                label: 'Spending ($)',
+                data: <?= json_encode($expenseData) ?>,
+                borderColor: '#f44336',
+                backgroundColor: 'rgba(244,67,54,0.2)',
+                borderWidth: 2
+            }
             ]
         },
-        options: { responsive: true }
-    });
+        options: {
+            responsive: true,
+            scales: {
+            y: {
+                beginAtZero: true
+            }
+            }
+        }
+        });
 
     new Chart(document.getElementById('categoryChart'), {
         type: 'pie',

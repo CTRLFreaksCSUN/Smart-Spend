@@ -118,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'created_at' => $now,
                 'expenses'   => $expenseSums,
                 'budgets'    => $budgets,
+                'income'     => $monthlyIncome,
             ]),
         ]);
     } catch (DynamoDbException $e) {

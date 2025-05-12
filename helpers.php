@@ -64,3 +64,29 @@ function fetchSpendingTrend(DynamoDbClient $client, Marshaler $m, string $email,
         return [[], []];
     }
 }
+
+function fetchIncomeTrend(DynamoDbClient $client, Marshaler $m, string $email, int $months = 6): array {
+    $cId = hash('sha256', $email);
+    try {
+        $resp = $client->query([
+            'TableName'                 => 'Finance',
+            'IndexName'                 => 'c_id-created_at-index',
+            'KeyConditionExpression'    => 'c_id = :cid',
+            'ExpressionAttributeValues' => $m->marshalItem([':cid' => $cId]),
+            'ScanIndexForward'          => false,
+            'Limit'                     => $months,
+        ]);
+        $items = array_reverse($resp['Items'] ?? []);
+        $labels = $data = [];
+        foreach ($items as $item) {
+            $dt    = new DateTime($m->unmarshalValue($item['created_at']));
+            $labels[] = $dt->format('M');
+            // here we look up the stored “income” attribute
+            $data[]  = floatval($m->unmarshalValue($item['income'] ?? 0));
+        }
+        return [$labels, $data];
+    } catch (DynamoDbException $e) {
+        error_log("DynamoDB error in fetchIncomeTrend: " . $e->getMessage());
+        return [[], []];
+    }
+}
