@@ -11,10 +11,14 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.ensemble import IsolationForest
 import openai
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from the .env file at the specified path.
-dotenv_path = r"C:\xampp\htdocs\Smart-Spend\.env"    # MAKE SURE THIS IS YOUR OWN DIRECTORY
-load_dotenv(dotenv_path=dotenv_path)
+# BASE_DIR will be the folder that contains analytics.py (and your .env)
+BASE_DIR    = Path(__file__).resolve().parent
+dotenv_path = BASE_DIR / '.env'
+
+# this will load the variables from ./SMART‑SPEND/.env
+load_dotenv(dotenv_path)
 
 # Retrieve and set the OpenAI API key from the environment.
 openai_api_key = os.getenv("OPENAI_API_KEY")

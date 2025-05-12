@@ -38,19 +38,31 @@ $_SESSION['shopping']   = $latest['shopping']      ?? 0;
 $_SESSION['transport']  = $latest['transport']     ?? 0;
 $_SESSION['entertain']  = $latest['entertainment'] ?? 0;
 
-function isServerRunning() {
-    $ch = curl_init('http://localhost:5000/calc_spending');
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    return curl_exec($ch) !== false;
+$python = 'python';
+
+// build absolute path to your script
+$script = __DIR__ . DIRECTORY_SEPARATOR . 'spendTrend.py';
+
+if (stripos(PHP_OS, 'WIN') === 0) {
+    // Windows: start without opening a console window
+    $cmd = sprintf(
+        'start /B %s %s',
+        escapeshellcmd($python),
+        escapeshellarg($script)
+    );
+    pclose(popen($cmd, 'r'));
+} else {
+    // *nix: detach with nohup and &
+    $cmd = sprintf(
+        'nohup %s %s > /dev/null 2>&1 &',
+        escapeshellcmd($python),
+        escapeshellarg($script)
+    );
+    exec($cmd);
 }
 
-if (!isServerRunning()) {
-    // Start the server from its correct directory
-    $command = 'cd /d C:\xampp\htdocs\Smart-Spend && start /B python spend_trend.py';
-    pclose(popen($command, 'r'));
-    sleep(2);
-}
+// give the script a moment to spin up
+sleep(2);
 
 $current_page = basename($_SERVER['PHP_SELF']);
 $categories = [

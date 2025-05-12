@@ -41,6 +41,32 @@ try {
     if (! empty($resp['Item']['expenses'])) {
         $rawExpenses = $marshaler->unmarshalValue($resp['Item']['expenses']);
     }
+    // NEW: pull income (defaults to 0)
+    $income = isset($resp['Item']['income'])
+            ? (float)$marshaler->unmarshalValue($resp['Item']['income'])
+            : 0.0;
+
+    if (isset($_POST['update-income'])) {
+        $newIncome = floatval($_POST['income']);
+        try {
+            $client->updateItem([
+                'TableName'                 => 'Finance',
+                'Key'                       => $marshaler->marshalItem([
+                    'c_id' => hash('sha256', $user['email'])
+                ]),
+                'UpdateExpression'          => 'SET income = :inc',
+                'ExpressionAttributeValues' => $marshaler->marshalItem([
+                    ':inc' => $newIncome
+                ]),
+            ]);
+            // Redirect so the refreshed page shows the new value
+            header('Location: ProfilePage.php');
+            exit;
+        } catch (DynamoDbException $e) {
+            echo '<div class="error">Failed to update income: '
+                .htmlspecialchars($e->getMessage()).'</div>';
+        }
+    }
 
     $categoryLabels = [];
     $categoryData   = [];
@@ -148,11 +174,40 @@ if (isset($_POST['save_categories']) && is_array($_POST['category_data'])) {
         <section class="profile-section">
           <div class="section-header">
             <h3><i class="fas fa-user-tag"></i> Personal Information</h3>
-            <button class="section-edit"><i class="fas fa-pencil-alt"></i></button>
+            <!-- remove the separate edit button -->
           </div>
           <div class="section-content">
-            <div class="info-row"><span class="info-label">Full Name</span><span class="info-value"><?=htmlspecialchars($user['name'])?></span></div>
-            <div class="info-row"><span class="info-label">Email</span><span class="info-value"><?=htmlspecialchars($user['email'])?></span></div>
+            <div class="info-row">
+              <span class="info-label">Full Name</span>
+              <span class="info-value"><?=htmlspecialchars($user['name'])?></span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Email</span>
+              <span class="info-value"><?=htmlspecialchars($user['email'])?></span>
+            </div>
+
+            <!-- INLINE INCOME FORM -->
+            <form method="POST" class="info-row" style="align-items:center;">
+              <label class="info-label" for="income">Monthly Income</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <span class="input-group-text">$</span>
+                <input 
+                  id="income"
+                  name="income"
+                  type="number"
+                  step="0.01"
+                  value="<?=htmlspecialchars(number_format($income,2, '.', ''))?>"
+                  style="width:120px; padding:0.25rem;"
+                >
+                <button 
+                  name="update-income"
+                  type="submit"
+                  class="section-edit"
+                  style="padding:0.25rem 0.75rem;"
+                >Update</button>
+              </div>
+            </form>
+
           </div>
         </section>
 
