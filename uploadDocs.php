@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
             </div>
             <nav>
                 <a href="DashboardPage.php"><i class="fas fa-home"></i> Dashboard</a>
-                <a href="#"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="documents.php"><i class="fas fa-file-alt"></i> Documents</a>
                 <a href="#" class="active"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
             </nav>
             <div class="profile-icon">
