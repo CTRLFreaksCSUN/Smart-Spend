@@ -398,66 +398,6 @@
     background-color: #0b5ed7;
   }
 
-
-.change-password {
-    background-color: white;
-    color: #0d47a1;
-    display:none;
-    height: fit-content;
-    width:fit-content;
-    position: absolute;
-    top: 25%;
-    left: 45%;
-}
-
-.change-password h1 {
-    font-size: 2em;
-    margin: 1em;
-}
-
-.change-password div {
-    border-style: solid;
-    border-radius: 10%;
-    display: inline-flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    padding: 0.5rem;
-    height: 30rem;
-    width: 24rem;
-    justify-items: center;
-    align-items: center;
-}
-
-.change-password label {
-    margin:1rem;
-    font-size: 1em;
-    font-weight: bold;
-}
-
-.change-password input {
-    width: 14rem;
-    padding: 0.2rem;
-    font-size: 1em;
-}
-
-.change-password input[type='submit'] {
-    width: 6rem;
-}
-
-.change-password section {
-    display:flex;
-    flex-direction:row;
-    gap:5rem;
-    position: absolute;
-    bottom: 5%;
-}
-
-.change-password .error {
-    background-color: rgba(247, 83, 83, 0.2);
-    color: rgb(245, 9, 9);
-    padding: 0.5rem;
-}
-
 /* ========== Edit Categories ========== */
 .category-edit-section {
     margin-top: 2rem;
@@ -527,6 +467,278 @@
     background-color: #0b5ed7;
   }
 
+  /* make your form a 2‑column grid */
+.savings-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  row-gap: 1rem;
+  column-gap: 1rem;
+  max-width: 600px;
+  margin: 1rem auto;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.savings-grid h4 {
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #004080;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.25rem;
+}
+
+.grid-row {
+  display: contents; /* makes each row span two columns */
+}
+
+.grid-row label {
+  align-self: center;
+  font-weight: 500;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-prefix,
+.static-value {
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.savings-grid input[type="number"] {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.btn-small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  border: 1px solid #888;
+  background: #eee;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  padding: 0.6rem 1.2rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.actions-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* New savings section */
+.savings-section .section-header h3 {
+  color: #0055aa;
+}
+
+.savings-grid h4 {
+  grid-column: 1 / -1;
+  margin: .5rem 0;
+  font-size: 1rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: .25rem;
+}
+
+.grid-row {
+  display: contents;
+}
+
+.grid-row label {
+  align-self: center;
+  font-weight: 500;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.input-prefix,
+.static-value {
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.savings-grid input[type="number"] {
+  width: 100%;
+  padding: .4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.btn-small {
+  padding: .25rem .5rem;
+  font-size: .85rem;
+  border: 1px solid #888;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.btn-primary {
+  padding: .6rem 1.2rem;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.actions-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.input-group-inline {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.input-prefix {
+  font-weight: 600;
+}
+
+.personal-section .section-subheader h4 {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  color: #0055aa;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: .25rem;
+}
+
+.personal-section .section-content {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  row-gap: 1rem;
+  column-gap: 1.5rem;
+}
+
+.personal-section .info-row.income-row {
+  align-items: center;
+}
+
+.personal-section .section-subheader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 2rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: .25rem;
+}
+
+.personal-section .security-row {
+  display: contents; 
+}
+
+.personal-section .security-row .info-label {
+  grid-column: 1;
+}
+.personal-section .security-row .btn-primary.small {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.personal-section .section-header--full {
+  grid-column: 1 / -1;
+  margin-bottom: 1rem;                  
+  border-bottom: 1px solid #ddd;         
+  padding-bottom: .5rem;                 
+}
+
+.btn-primary.small {
+  padding: .4rem .8rem;
+  font-size: .9rem;
+}
+
+.personal-section .info-row {
+  display: contents;
+}
+
+#income-form {
+  grid-column: 2; 
+}
+
+#income-form .input-group-inline {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.personal-section .change-password {
+  display: none;
+  grid-column: 1 / -1;
+  background: #fff;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+/* when “active” (we’ll toggle a class in JS) */
+.personal-section .change-password.active {
+  display: block;
+}
+
+/* simple rows */
+.personal-section .change-password .cp-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.personal-section .change-password .cp-row label {
+  flex: 0 0 150px;
+  font-weight: 500;
+}
+
+.personal-section .change-password .cp-row input {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* action buttons */
+.personal-section .change-password .cp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
 /* Animations */
 @keyframes fadeInUp {
     from {

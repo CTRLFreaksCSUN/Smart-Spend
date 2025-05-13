@@ -126,3 +126,50 @@ function fetchIncomeTrend(DynamoDbClient $client, Marshaler $m, string $email, i
         return [[], []];
     }
 }
+
+function getLatestFinance(DynamoDbClient $client, Marshaler $m, string $email): array {
+    $cId = hash('sha256', $email);
+    try {
+        $resp = $client->query([
+            'TableName'                 => 'Finance',
+            'IndexName'                 => 'c_id-created_at-index',
+            'KeyConditionExpression'    => 'c_id = :cid',
+            'ExpressionAttributeValues' => $m->marshalItem([':cid' => $cId]),
+            'ScanIndexForward'          => false,
+            'Limit'                     => 1,
+            'ProjectionExpression'      => 'expenses, budgets, savings_goals, current_savings'
+        ]);
+
+        $item = $resp['Items'][0] ?? null;
+        // If no record yet, return four empty maps
+        if (! $item) {
+            return [
+                'expenses'        => [],
+                'budgets'         => [],
+                'savings_goals'   => [],
+                'current_savings' => []
+            ];
+        }
+
+        $attrs = ['expenses','budgets','savings_goals','current_savings'];
+        $result = [];
+        foreach ($attrs as $attr) {
+            if (isset($item[$attr])) {
+                // safe to unmarshal
+                $result[$attr] = $m->unmarshalValue($item[$attr]);
+            } else {
+                // no such attribute stored yet
+                $result[$attr] = [];
+            }
+        }
+        return $result;
+    } catch (DynamoDbException $e) {
+        error_log("DynamoDB error in getLatestFinance: " . $e->getMessage());
+        return [
+            'expenses'        => [],
+            'budgets'         => [],
+            'savings_goals'   => [],
+            'current_savings' => []
+        ];
+    }
+}

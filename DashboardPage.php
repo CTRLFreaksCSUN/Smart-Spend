@@ -36,18 +36,17 @@ $incomeData  = $incData;
 $expenseData = $trendData;
 
 // Latest expenses & budgets
-$latest    = getLatestExpenses($financeClient, $marshaler, $_SESSION['email']);
-$budgets   = $latest['budgets'] ?? [];
-$expenses  = $latest['expenses'] ?? [];
+$latest      = getLatestFinance($financeClient,$marshaler,$_SESSION['email']);
+$budgets     = $latest['budgets']       ?? [];
+$expenses    = $latest['expenses']      ?? [];
+$savingsGoals= $latest['savings_goals'] ?? [];
+$currentSavings= $latest['current_savings'] ?? [];
 
 // Seven categories in lock‑step
 $keys       = ['rent','utilities','medical','food','shopping','transport','entertainment'];
 $categoryLabels = ['Rent','Utilities','Medical','Food','Shopping','Transport','Entertainment'];
 $actualData = array_map(fn($k)=> floatval($expenses[$k] ?? 0), $keys);
 $budgetData = array_map(fn($k)=> floatval($budgets[$k] ?? 0), $keys);
-
-$savingsData = [150, 180, 200, 220, 250, 300];
-
 ?>
 
 <!DOCTYPE html>
@@ -128,8 +127,8 @@ $savingsData = [150, 180, 200, 220, 250, 300];
     </div>
 
     <div class="card">
-        <h2>Savings Progress</h2>
-        <canvas id="savingsChart"></canvas>
+        <h2>Savings Goals</h2>
+        <canvas id="savingsGoalsChart"></canvas>
     </div>
 
 </main>
@@ -223,17 +222,35 @@ $savingsData = [150, 180, 200, 220, 250, 300];
         options: { responsive: true }
     });
 
-    new Chart(document.getElementById('savingsChart'), {
+    new Chart(document.getElementById('savingsGoalsChart'), {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($trendLabels); ?>,
-            datasets: [{
-                label: 'Savings ($)',
-                data: <?php echo json_encode($savingsData); ?>,
-                backgroundColor: '#3f51b5'
-            }]
+            labels: <?= json_encode(array_map(
+            fn($k)=> ucwords(str_replace('_',' ',$k)), 
+            array_keys($savingsGoals)
+            )) ?>,
+            datasets: [
+            {
+                label: 'Target Goal',
+                data: <?= json_encode(array_map('floatval', array_values($savingsGoals))) ?>,
+                backgroundColor: 'rgba(75,192,192,0.6)'
+            },
+            {
+                label: 'Current Saved',
+                data: <?= json_encode(array_map('floatval', array_map(
+                fn($k)=> $currentSavings[$k] ?? 0, 
+                array_keys($savingsGoals)
+                ))) ?>,
+                backgroundColor: 'rgba(153,102,255,0.6)'
+            }
+            ]
         },
-        options: { responsive: true }
+        options: {
+            responsive: true,
+            scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Amount ($)' } }
+            }
+        }
     });
 </script>
 

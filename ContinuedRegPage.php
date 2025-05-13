@@ -41,21 +41,11 @@
       $db = createFinanceCollection($dbClient);
       return $dbClient;
     }
-    catch(UnrecognizedClientException $ucerr) {
-      echo 'Failed to connect to AWS: ' . $ucerr->getMessage();
-    }
-    catch(ValidationException $verr) {
-      echo 'Failed to validate user: ' . $verr->getMessage();
-    }
     catch(InvalidArgumentException $iaerr) {
       echo 'Invalid argument detected: ' . $iaerr->getMessage();
     }
-    catch(ResourceNotFoundException $rerr) {
-      echo 'Could not find requested resource: ' . $rerr->getMessage();
-    }
   }
-  
-  // Modified table creation function (fixed the key schema and attribute definitions)
+
   function createFinanceCollection($dbClient) {
     $new_collec = null;
     try {
@@ -154,56 +144,57 @@
   }
   
   // Process form data and save to DynamoDB
-  function processFormData($client) {
-    try {
-      // Get form data
-      $income = $_POST['income'];
-      $savingsGoals = isset($_POST['savings_goals']) ? $_POST['savings_goals'] : [];
-      $budget = isset($_POST['budget']) ? $_POST['budget'] : 'Flexible';
-      
-      $budgets = [
-          'entertainment' => (int)($_POST['entertain']   ?? 0),
-          'rent'          => (int)($_POST['rent']        ?? 0),
-          'food'          => (int)($_POST['food']        ?? 0),
-          'medical'       => (int)($_POST['medical']     ?? 0),
-          'shopping'      => (int)($_POST['shopping']    ?? 0),
-          'transport'     => (int)($_POST['transport']   ?? 0),
-          'utilities'     => (int)($_POST['util']        ?? 0),
-        ];
-      
-      // Create a marshaler to convert PHP arrays to DynamoDB format
-      $marshaler = new Marshaler();
-      $customerId = hash('sha256', $_SESSION['email']);
+  function processFormData(DynamoDbClient $client) {
+    $marshaler  = new Marshaler();
+    $customerId = hash('sha256', $_SESSION['email']);
 
-      // Prepare item data
-      $item = [
-        'c_id' => $customerId,
-        'income' => (int)$income,
-        'savings_goals' => $savingsGoals,
-        'budget_type' => $budget,
-        'budgets' => $budgets,
-        'created_at' => date('Y-m-d H:i:s')
-      ];
-      
-      // Convert to DynamoDB format
-      $marshaledItem = $marshaler->marshalItem($item);
-      
-      // Add item to table
-      $result = $client->putItem([
-        'TableName' => 'Finance',
-        'Item' => $marshaledItem
-      ]);
-      
-      // Redirect to dashboard on success
-      header('Location: DashboardPage.php');
-      exit;
+    // Collect income, budget and budgets
+    $income  = (int)($_POST['income'] ?? 0);
+    $budget  = $_POST['budget'] ?? 'Flexible';
+    $budgets = array_map('floatval', [
+        'entertainment' => $_POST['entertain'] ?? 0,
+        'rent'          => $_POST['rent']      ?? 0,
+        'food'          => $_POST['food']      ?? 0,
+        'medical'       => $_POST['medical']   ?? 0,
+        'shopping'      => $_POST['shopping']  ?? 0,
+        'transport'     => $_POST['transport'] ?? 0,
+        'utilities'     => $_POST['util']      ?? 0,
+    ]);
+
+    // Build savings goals map
+    $savingsGoals = [];
+    foreach (['vacation','car','general_savings','emergency_fund'] as $cat) {
+        if (!empty($_POST['savings_goals']) && in_array($cat, $_POST['savings_goals'], true)) {
+            $savingsGoals[$cat] = (float)($_POST['savings_amounts'][$cat] ?? 0);
+        }
     }
-    catch (Exception $e) {
-      // Log error and display message
-      error_log($e->getMessage(), 0);
-      $error = "There was an error saving your information. Please try again.";
+
+    // Update DynamoDB
+    try {
+        $client->updateItem([
+            'TableName'                 => 'Finance',
+            'Key'                       => $marshaler->marshalItem(['c_id' => $customerId]),
+            'UpdateExpression'          => 'SET 
+                income        = :inc,
+                budget_type   = :bt,
+                budgets       = :b,
+                savings_goals = :sg',
+            'ExpressionAttributeValues' => [
+                ':inc' => $marshaler->marshalValue($income),
+                ':bt'  => $marshaler->marshalValue($budget),
+                ':b'   => $marshaler->marshalValue($budgets),
+                ':sg'  => $marshaler->marshalValue($savingsGoals),
+            ],
+        ]);
+
+        header('Location: DashboardPage.php');
+        exit;
+    } catch (DynamoDbException $e) {
+        error_log("DynamoDB update error: " . $e->getMessage());
+        // Optionally set a flash message or display an error above the form
+        $_SESSION['error'] = "Sorry, we couldn't save your settings—please try again.";
     }
-  }
+}
 ?>
 
 <?php
@@ -250,12 +241,34 @@
           </div>
 
           <!-- Savings Goals -->
-          <span class="section-title">Savings Goals</span>
-          <div class="checkbox-group" id="default-savings-goals">
-            <label><input type="checkbox" name="savings_goals[]" value="Vacation"> Vacation</label>
-            <label><input type="checkbox" name="savings_goals[]" value="Car"> New Car</label>
-            <label><input type="checkbox" name="savings_goals[]" value="Savings"> General Savings</label>
-            <label><input type="checkbox" name="savings_goals[]" value="Emergency"> Emergency Fund</label>
+          <div id="savings-goals">
+            <div class="section-title">Savings Goals</div>
+            <?php foreach (['vacation','car','general_savings','emergency_fund'] as $cat): ?>
+              <div class="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="savings_goals[]"
+                    value="<?= $cat ?>"
+                    id="cb-<?= $cat ?>"
+                    onchange="toggleSavingsInputs('<?= $cat ?>')"
+                  >
+                  <?= ucwords(str_replace('_',' ',$cat)) ?>
+                </label>
+
+                <div id="inputs-<?= $cat ?>" class="savings_inputs">
+                  <label for="amt-<?= $cat ?>">Target amount</label>
+                  <input
+                    type="number"
+                    id="amt-<?= $cat ?>"
+                    name="savings_amounts[<?= $cat ?>]"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+            <?php endforeach; ?>
           </div>
 
           <!-- Preferred Budget -->
@@ -266,7 +279,6 @@
           </div>
 
           <!-- Budget Categories -->
-           <form method="POST" onsubmit="<?php htmlspecialchars($_SERVER['PHP_SELF']);?>">
           <span class="section-title">Expense Categories</span>
             <label>
               <div class='checkbox-inputbox'>
@@ -285,13 +297,11 @@
             <label><input type="checkbox" name="expenses[]" value="Entertainment"> Entertainment<input type='number' id='entertain' 
             name='entertain' value='<?php htmlspecialchars($_POST['entertain'] ?? 0);?>'/></label>
           </div>
-        </form>
-
-          <!-- Form Actions -->
           <div style="display: flex; justify-content: center; gap: 20px; margin-top: 40px;">
             <input type="submit" name="cancel" value="Cancel" class="register-button">
             <input type="submit" name="finish" value="Complete Setup" class="register-button">
           </div>
+        </form>
         </form>
       </div>
     </main>
@@ -316,5 +326,46 @@
   </div>
 
   <script src="bubbleChat.js"></script>
+  <script>
+  // On load, hide all the wrappers
+  document.querySelectorAll('.savings_inputs, .expense-inputs')
+          .forEach(div => div.style.display = 'none');
+
+  function toggleSavingsInputs(key) {
+    const wrapper = document.getElementById(`inputs-${key}`);
+    const checked = document.getElementById(`cb-${key}`).checked;
+    wrapper.style.display = checked ? 'block' : 'none';
+    if (!checked && wrapper.querySelector('input')) {
+      wrapper.querySelector('input').value = '';
+    } else if (checked && wrapper.querySelector('input')) {
+      wrapper.querySelector('input').focus();
+    }
+  }
+
+  function toggleExpenseInputs(key) {
+    const wrapper = document.getElementById(`inputs-${key}`);
+    const checked = document.getElementById(`cb-${key}`).checked;
+    wrapper.style.display = checked ? 'block' : 'none';
+    if (!checked && wrapper.querySelector('input')) {
+      wrapper.querySelector('input').value = '';
+    } else if (checked && wrapper.querySelector('input')) {
+      wrapper.querySelector('input').focus();
+    }
+  }
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.checkbox-inputbox input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', e => {
+        // derive the key from the checkbox id: "cb-food" → "food"
+        const key = cb.id.replace(/^cb-/, '');
+        const wrapper = document.getElementById(`inputs-${key}`);
+        if (!wrapper) return;
+        wrapper.style.display = cb.checked ? 'block' : 'none';
+        if (cb.checked) wrapper.querySelector('input')?.focus();
+      });
+    });
+  });
+</script>
 </body>
 </html>
