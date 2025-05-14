@@ -7,11 +7,36 @@ provide automated insights, predictive analytics, and personalized recommendatio
 Those that will use Smart Spend will reduce financial stress with AI insights, enhance financial literacy, and help 
 users achieve financial goals with smart budgeting.
 
-## Required files
+# Testcases 
 
+### Registration test cases
+1. Password: rEt6$ => Expected Result: Invalid
+2. Password: re8ch4the$tar$ => Expected Result: Invalid
+3. Password: @succE$$55 => Expected Result: Valid
+4. First/Middle/Last name: 99904 => Expected Result: Invalid
 
-# Setup
+### Preview Screenshots
+1.
+![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
 
+2.
+![Screenshot (410)](https://github.com/user-attachments/assets/96263597-4009-4388-8408-0a9b5be8eb95)
+
+3.
+![Screenshot (411)](https://github.com/user-attachments/assets/76a017cd-439d-4067-a705-21420bf64ba1)
+
+## Unit Tests
+1. To get started with running the unit test cases, first install the Composer package manager.
+
+https://getcomposer.org/download/
+
+Install by clicking Composer-Setup.exe
+
+2. After installing, download the "unit_tests" folder from this repository.
+3. Create a new folder and move unit_tests folder into it.
+4. Install "composer.lock" and "composer.json" from this repository and place them in the same directory as the unit_tests folder.
+5. In the command line terminal, navigate to that same directory and run the command "composer install" to install all dependencies.
+6. After that, enter "./vendor/bin/phpunit unit_tests/test_file_name" to run test cases (replace test_file_name with actual test file name).
 
 # User Manual
 1. Open the Smart Spend website on your browser.
@@ -43,42 +68,6 @@ From the Documents tab, users can see all the documents that they've uploaded.
 2. Browse through the list or use the search/filter bar to find specific files.
 3. Click on a document to view its details and the associated expense entry.
 
-## Dataset
-
-# Testcases 
-## Registration test cases
-1. Password: rEt6$ => Expected Result: Invalid
-2. Password: re8ch4the$tar$ => Expected Result: Invalid
-3. Password: @succE$$55 => Expected Result: Valid
-4. First/Middle/Last name: 99904 => Expected Result: Invalid
-
-# Spend Trend test cases
-1.
-![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
-
-2.
-![Screenshot (410)](https://github.com/user-attachments/assets/96263597-4009-4388-8408-0a9b5be8eb95)
-
-3.
-![Screenshot (411)](https://github.com/user-attachments/assets/76a017cd-439d-4067-a705-21420bf64ba1)
-
-
-
-
-
-## Unit Tests
-1. To get started with running the unit test cases, first install the Composer package manager.
-
-https://getcomposer.org/download/
-
-Install by clicking Composer-Setup.exe
-
-2. After installing, download the "unit_tests" folder from this repository.
-3. Create a new folder and move unit_tests folder into it.
-4. Install "composer.lock" and "composer.json" from this repository and place them in the same directory as the unit_tests folder.
-5. In the command line terminal, navigate to that same directory and run the command "composer install" to install all dependencies.
-6. After that, enter "./vendor/bin/phpunit unit_tests/test_file_name" to run test cases (replace test_file_name with actual test file name).
-
 # Authors
 Jessica Babos
 
@@ -90,8 +79,6 @@ Zachary Mclaughlin
 
 Shadi Zgheib
 
-# External Requirements:
-
- ## Presentation
- Slides Link - https://docs.google.com/presentation/d/1LdT1w3d4i-lalkJ0UfNcnPZukd9PQlQBmQofYlxoK_M/edit?usp=drive_link
- Video Link - 
+# Presentation and Demo Video
+- Slides Link - https://docs.google.com/presentation/d/1LdT1w3d4i-lalkJ0UfNcnPZukd9PQlQBmQofYlxoK_M/edit?usp=drive_link
+- Video Link - https://drive.google.com/file/d/1HaIrtAvYVxvvvtrQVWKfIe1CwBGTXzsF/view?usp=sharing
