@@ -46,7 +46,18 @@ From the Documents tab, users can see all the documents that they've uploaded.
 ## Dataset
 
 # Testcases 
-1. To get started with running the test cases, first install the Composer package manager.
+## Registration test cases
+1. Password: rEt6$ => Expected Result: Invalid
+2. Password: re8ch4the$tar$ => Expected Result: Invalid
+3. Password: @succE$$55 => Expected Result: Valid
+4. First/Middle/Last name: 99904 => Expected Result: Invalid
+
+# Spend Trend test cases
+1. ![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
+
+
+## Unit Tests
+1. To get started with running the unit test cases, first install the Composer package manager.
 
 https://getcomposer.org/download/
 
