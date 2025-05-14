@@ -46,6 +46,17 @@ From the Documents tab, users can see all the documents that they've uploaded.
 ## Dataset
 
 # Testcases 
+1. To get started with running the test cases, first install the Composer package manager.
+
+https://getcomposer.org/download/
+
+Install by clicking Composer-Setup.exe
+
+2. After installing, download the "unit_tests" folder from this repository.
+3. Create a new folder and move unit_tests folder into it.
+4. Install "composer.lock" and "composer.json" from this repository and place them in the same directory as the unit_tests folder.
+5. In the command line terminal, navigate to that same directory and run the command "composer install" to install all dependencies.
+6. After that, enter "./vendor/bin/phpunit unit_tests/test_file_name" to run test cases (replace test_file_name with actual test file name).
 
 # Authors
 Jessica Babos
