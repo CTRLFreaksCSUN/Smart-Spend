@@ -53,7 +53,11 @@ From the Documents tab, users can see all the documents that they've uploaded.
 4. First/Middle/Last name: 99904 => Expected Result: Invalid
 
 # Spend Trend test cases
-1. ![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
+1.
+![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
+
+2. 
+![Screenshot (410)](https://github.com/user-attachments/assets/96263597-4009-4388-8408-0a9b5be8eb95)
 
 
 ## Unit Tests
