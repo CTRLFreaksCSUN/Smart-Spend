@@ -10,20 +10,47 @@ users achieve financial goals with smart budgeting.
 # Testcases 
 
 ### Registration test cases
-1. Password: rEt6$ => Expected Result: Invalid
-2. Password: re8ch4the$tar$ => Expected Result: Invalid
-3. Password: @succE$$55 => Expected Result: Valid
-4. First/Middle/Last name: 99904 => Expected Result: Invalid
+1. Enter Password: rEt6$ => Expected Result: Invalid
+2. Enter Password: re8ch4the$tar$ => Expected Result: Invalid
+3. Enter Password: @succE$$55 => Expected Result: Valid
+4. Enter First/Middle/Last name: 99904 => Expected Result: Invalid
 
-### Preview Screenshots
-1.
+### Login test cases
+1. After creating new account, attempt to login will fail if user is not verified.
+2. User clicks on sign in button while unverified => Expected Result: Verification email is resent.
+
+### Dashboard test cases
+1. After adding financial information from registration, the dashboard will be repopulated with data represented in the charts/diagrams.
+2. The charts will be updated after starting budget and expense analysis.
+3. When user clicks sign out, their session is successfully terminated.
+
+### Spend trend test cases
+1. Inputting comma, separated expenses will be successfully fed into analysis.
 ![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
 
-2.
+2. Inputting numbers with random decimal places is accepted.
 ![Screenshot (410)](https://github.com/user-attachments/assets/96263597-4009-4388-8408-0a9b5be8eb95)
 
-3.
+3. Inputting negative numbers will be accepted.
 ![Screenshot (411)](https://github.com/user-attachments/assets/76a017cd-439d-4067-a705-21420bf64ba1)
+
+### History test cases
+1. History is repopulated after spend trend analysis is completed.
+2. History is saved next time the user logs in.
+3. Applying time filters shows the history within the selected time frame.
+4. Applying expense type filters shows only the history of that category.
+5. Clearing history removes all history permanently.
+
+### Profile test cases
+1. User's monthly income, savings goals and savings will be displayed on profile and saved the next time they login.
+2. When the user makes a deposit, the user's savings will be updated.
+3. When the user changes their password, they are required to enter their old password first.
+4. Attempting to change the password to an old password will fail.
+
+### Upload documents test cases
+1. User receives results from uploading images and pdfs.
+2. Documents tab is repopulated with files that the user uploads.
+3. When user removes document, it is permanently deleted.
 
 ## Unit Tests
 1. To get started with running the unit test cases, first install the Composer package manager.
