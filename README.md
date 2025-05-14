@@ -56,8 +56,14 @@ From the Documents tab, users can see all the documents that they've uploaded.
 1.
 ![Screenshot (408)](https://github.com/user-attachments/assets/206af79e-3b9f-4f67-8b89-0d45d6c1fc7f)
 
-2. 
+2.
 ![Screenshot (410)](https://github.com/user-attachments/assets/96263597-4009-4388-8408-0a9b5be8eb95)
+
+3.
+![Screenshot (411)](https://github.com/user-attachments/assets/76a017cd-439d-4067-a705-21420bf64ba1)
+
+
+
 
 
 ## Unit Tests
