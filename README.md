@@ -7,6 +7,15 @@ provide automated insights, predictive analytics, and personalized recommendatio
 Those that will use Smart Spend will reduce financial stress with AI insights, enhance financial literacy, and help 
 users achieve financial goals with smart budgeting.
 
+## Technology Stack
+* Frontend: HTML, CSS, Flask
+* Backend: JavaScript, PHP, Python
+* APIs & SDKs: Uvicorn, AWS SDK, OpenAI SDK
+* Database: Amazon DynamoDB
+* Server Hosting: Amazon EC2
+* Machine Learning & Data Processing: ARIMA, Pandas, scipy, Pydantic, Chart.js
+* Package Managers: NPM, PIP, Composer
+
 # User Manual
 1. Open the Smart Spend website on your browser.
 2. If you do not have an account, click Sign Up and input your information in the following fields. Once completed, click Create Account. You will be sent a verification email with a verification code needed to complete registration.
