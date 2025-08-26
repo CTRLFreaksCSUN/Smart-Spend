@@ -37,6 +37,24 @@ From the Documents tab, users can see all the documents that they've uploaded.
 2. Browse through the list or use the search/filter bar to find specific files.
 3. Click on a document to view its details and the associated expense entry.
 
+# Screenshots
+<img width="909" height="436" alt="Screenshot (448)" src="https://github.com/user-attachments/assets/4be53c93-8b29-4d03-a6ed-a71c11eb463f" />
+
+<img width="888" height="442" alt="Screenshot (449)" src="https://github.com/user-attachments/assets/7a062a06-0e6f-4599-8245-343a82715f98" />
+
+<img width="942" height="459" alt="Screenshot (450)" src="https://github.com/user-attachments/assets/21947c5c-e121-4a9a-9812-e3cc050a7ad1" />
+
+<img width="962" height="460" alt="Screenshot (451)" src="https://github.com/user-attachments/assets/4310e710-2cac-42b9-b01c-12a515cc9615" />
+
+<img width="955" height="466" alt="Screenshot (452)" src="https://github.com/user-attachments/assets/e60b55f6-aa74-46fb-86c5-66b2ac5bf6bd" />
+
+<img width="977" height="479" alt="Screenshot (453)" src="https://github.com/user-attachments/assets/edbe83cf-80a6-41d6-b3a9-4c5edfa65791" />
+
+<img width="930" height="455" alt="Screenshot (454)" src="https://github.com/user-attachments/assets/cd2c8a3f-fdfb-415e-9ab5-4d6549979e46" />
+
+<img width="500" height="450" alt="Screenshot (455)" src="https://github.com/user-attachments/assets/bcdabc53-cb59-401a-99b1-712098d778b3" />
+
+
 # Testcases 
 
 ### Registration test cases
